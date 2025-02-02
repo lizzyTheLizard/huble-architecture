@@ -1,0 +1,78 @@
+h1 {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 button.btn {
+    --bs-btn-padding-x: 1rem;
+}
+
+.sidecol {
+    width: 25%;
+    min-width: 20rem;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+    .sidecol {
+        min-width: 100%
+    }
+}
+
+label {
+    font-size: small;
+}
+
+h5.accordion-button {
+    padding: 0;
+    font-size: 1.25rem;
+}
+
+.accordion-body {
+    padding: 0;
+}
+
+textarea {
+    margin-bottom: 0.5rem;
+}
+
+textarea#comment {
+    height: 10rem;
+}
+
+textarea#description {
+    height: 20rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: initial;
+    box-shadow: initial;
+}
+
+h5 {
+    margin-top: 1.5rem;
+}
+
+
+
+/*
+
+
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+.col {
+    min-width: 15rem;
+    margin-bottom: 0.3rem;
+}
+
+
+
+h2 {
+    margin-top: 1.5rem;
+}
+
+ */

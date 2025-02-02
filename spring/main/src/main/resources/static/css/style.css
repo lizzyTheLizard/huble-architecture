@@ -1,0 +1,47 @@
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+main {
+    flex-shrink: 0;
+    flex-grow: 1;
+    padding-top: 7rem;
+}
+
+footer{
+    padding: 1rem 0 1rem 0;
+    background-color: rgba(var(--bs-light-rgb),1);
+    color: var(--bs-secondary-color);
+}
+
+code {
+    white-space: pre;
+}
+
+
+/* Button Bar */
+div.button-bar {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+div.button-bar button, div.button-bar a {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    margin-left: 0.5rem;
+}
+
+@media (max-width: 767px) {
+    div.button-bar {
+        flex-direction: column;
+    }
+    div.button-bar button, div.button-bar a {
+        margin-top: 0.5rem;
+        width: 100%;
+        margin-left: 0;
+    }
+}
