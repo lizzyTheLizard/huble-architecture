@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 class CommentTaskTest {
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private CommentTaskUseCase target;
 
     @MockitoBean

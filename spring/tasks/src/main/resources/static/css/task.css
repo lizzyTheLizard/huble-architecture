@@ -4,10 +4,6 @@ h1 {
     align-items: center;
 }
 
-h1 button.btn {
-    --bs-btn-padding-x: 1rem;
-}
-
 .sidecol {
     width: 25%;
     min-width: 20rem;
@@ -45,7 +41,7 @@ textarea#description {
     height: 20rem;
 }
 
-.accordion-button:not(.collapsed) {
+.accordion-button {
     background-color: initial;
     box-shadow: initial;
 }

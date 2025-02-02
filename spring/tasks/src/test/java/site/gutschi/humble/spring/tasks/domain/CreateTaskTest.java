@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 class CreateTaskTest {
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private CreateTaskUseCase target;
 
     @MockitoBean

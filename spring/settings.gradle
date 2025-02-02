@@ -1,6 +1,4 @@
 rootProject.name = 'spring'
-include("config")
-include("testConfig")
 include("common")
 include("tasks")
 include("users")

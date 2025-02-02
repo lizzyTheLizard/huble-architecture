@@ -28,7 +28,7 @@ public class TestApplication {
 
     @Bean
     CheckImplementationCaller checkImplementationCaller() {
-        return taskId -> new CheckImplementationsResponse(List.of());
+        return (_) -> new CheckImplementationsResponse(List.of());
     }
 
     @Bean
@@ -64,22 +64,12 @@ public class TestApplication {
 
     @Bean
     GetProjectApi getProjectApi() {
-        return projectKey -> Optional.empty();
+        return (_) -> Optional.empty();
     }
 
     @Bean
     GetUserApi getUserApi() {
-        return new GetUserApi() {
-            @Override
-            public Optional<User> getUser(String userEmail) {
-                return userEmail.equals(CURRENT_USER.getEmail()) ? Optional.of(CURRENT_USER) : Optional.empty();
-            }
-
-            @Override
-            public Collection<User> getUserForProject(String projectKey) {
-                return List.of();
-            }
-        };
+        return userEmail -> userEmail.equals(CURRENT_USER.getEmail()) ? Optional.of(CURRENT_USER) : Optional.empty();
     }
 
     @Bean

@@ -15,9 +15,9 @@ import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
+@SuppressWarnings("SameReturnValue")
 public class TaskController {
     private final GetTasksUseCase getTasksUseCase;
-    private final CreateTaskUseCase createTaskUseCase;
     private final DeleteTaskUseCase deleteTaskUseCase;
     private final CommentTaskUseCase commentTaskUseCase;
     private final EditTaskUseCase editTaskUseCase;
@@ -81,13 +81,18 @@ public class TaskController {
                 .status(TaskStatus.valueOf(body.get("status")))
                 .assignee(body.get("assigneeEmail"));
         body.keySet().stream()
-                .filter(k -> key.startsWith("field_"))
-                .forEach(k -> editTaskRequestBuilder.additionalField(key.substring(6), body.get(key)));
+                .filter(k -> k.startsWith("field_"))
+                .forEach(k -> {
+                    final var fieldKey = k.substring(6);
+                    final var value = body.get(k);
+                    editTaskRequestBuilder.additionalField(fieldKey, value);
+                });
         final var editTaskRequest = editTaskRequestBuilder.build();
         editTaskUseCase.edit(editTaskRequest);
         return "redirect:/tasks/" + editTaskRequest.taskKey();
     }
 
+    //TODO: Implement task overview
     /*
     @GetMapping("/tasks")
     public String showTasksOverview() {

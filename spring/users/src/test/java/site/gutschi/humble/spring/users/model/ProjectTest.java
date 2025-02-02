@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ class ProjectTest {
         }
     };
 
-    private static final ZonedDateTime NOW = ZonedDateTime.now();
+    private static final Instant NOW = Instant.now();
     private static final TimeApi TIME_API = () -> NOW;
 
     @Test

@@ -10,8 +10,8 @@ import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class AllowedToAccessPolicy {
     private final UserApi userApi;
     private final UserRepository userRepository;
@@ -31,14 +31,6 @@ public class AllowedToAccessPolicy {
         if (!currentUser.getEmail().equals(user.getEmail())) {
             throw NotAllowedException.notAllowedToManageUser(currentUser.getEmail(), user.getEmail());
         }
-    }
-
-    public boolean canRead(Project project) {
-        final var currentUser = getCurrentUser();
-        if (currentUser.isSystemAdmin()) return true;
-        return project.getRole(currentUser.getEmail())
-                .map(ProjectRoleType::canRead)
-                .orElse(false);
     }
 
     private User getCurrentUser() {

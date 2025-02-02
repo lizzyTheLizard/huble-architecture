@@ -48,13 +48,13 @@ public class InMemoryTaskRepositoryImpl implements TaskRepository {
 
     @Override
     public Collection<Task> findTasks(GetTasksRequest request) {
-        //TODO: Implement filtering
+        //TODO: Implement findTasks
         throw new RuntimeException("Not implemented");
     }
 
     @Override
     public Collection<Task> findTasksWithoutPaging(GetTasksRequest request) {
-        //TODO: Implement filtering
+        //TODO: Implement findTasks
         throw new RuntimeException("Not implemented");
     }
 

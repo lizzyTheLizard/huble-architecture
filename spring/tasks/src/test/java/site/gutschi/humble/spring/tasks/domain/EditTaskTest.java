@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 class EditTaskTest {
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private EditTaskUseCase target;
 
     @MockitoBean
@@ -154,7 +155,7 @@ class EditTaskTest {
         Mockito.when(task.getTitle()).thenReturn("title");
         Mockito.when(task.getDescription()).thenReturn("description");
         Mockito.when(task.getStatus()).thenReturn(TaskStatus.FUNNEL);
-        Mockito.when(task.getAssigneeEmail()).thenReturn(Optional.of("asignee"));
+        Mockito.when(task.getAssigneeEmail()).thenReturn(Optional.of("assignee"));
         Mockito.when(task.getEstimation()).thenReturn(Optional.of(1));
         Mockito.when(task.isDeleted()).thenReturn(false);
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(task));

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
+@SuppressWarnings("SameReturnValue")
 public class LoginController {
     @GetMapping("/login.html")
     public String showLogin(@RequestParam(value = "error", required = false, defaultValue = "false") boolean error, Model model) {

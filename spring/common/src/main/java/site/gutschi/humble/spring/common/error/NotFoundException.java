@@ -10,10 +10,6 @@ public class NotFoundException extends RuntimeException {
         return new NotFoundException("Project '" + projectKey + "' could not found");
     }
 
-    public static NotFoundException userNotFound(String currentEmail) {
-        return new NotFoundException("User '" + currentEmail + "' could not found");
-    }
-
     public static NotFoundException taskNotFound(String taskKey) {
         return new NotFoundException("Task '" + taskKey + "' could not found");
     }

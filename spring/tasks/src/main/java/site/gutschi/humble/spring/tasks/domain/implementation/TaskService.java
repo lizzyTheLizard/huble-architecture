@@ -1,7 +1,6 @@
 package site.gutschi.humble.spring.tasks.domain.implementation;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
@@ -11,21 +10,18 @@ import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.users.domain.api.GetProjectApi;
-import site.gutschi.humble.spring.users.domain.api.GetUserApi;
 import site.gutschi.humble.spring.users.model.Project;
-import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.model.ProjectRole;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-@Slf4j
 @Service
 class TaskService implements EditTaskUseCase, CommentTaskUseCase, DeleteTaskUseCase, GetTasksUseCase, CreateTaskUseCase {
     private final UserApi userApi;
     private final TimeApi timeApi;
     private final GetProjectApi getProjectApi;
-    private final GetUserApi getUserApi;
     private final TaskRepository taskRepository;
     private final CanAccessPolicy canAccessPolicy;
     private final ProjectActivePolicy projectActivePolicy;
@@ -85,9 +81,9 @@ class TaskService implements EditTaskUseCase, CommentTaskUseCase, DeleteTaskUseC
         notDeletedPolicy.ensureNotDeleted(existingTask);
         final var editable = canAccessPolicy.canRead(project);
         final var deletable = canAccessPolicy.canDelete(project);
-        final var projectUsers = getUserApi.getUserForProject(existingTask.getProjectKey())
+        final var projectUsers = project.getProjectRoles()
                 .stream()
-                .collect(Collectors.toMap(User::getEmail, u -> u));
+                .collect(Collectors.toMap(r -> r.user().getEmail(), ProjectRole::user));
         return new GetTasksResponse(existingTask, editable, deletable, project, projectUsers);
     }
 

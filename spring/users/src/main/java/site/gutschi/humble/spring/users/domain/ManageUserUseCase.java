@@ -6,7 +6,6 @@ import site.gutschi.humble.spring.users.domain.api.*;
 import site.gutschi.humble.spring.users.domain.ports.UserRepository;
 import site.gutschi.humble.spring.users.model.User;
 
-import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -17,10 +16,9 @@ public class ManageUserUseCase implements CreateUserApi, EditUserApi, GetUserApi
 
     @Override
     public User createUser(CreateUserRequest request) {
-        userRepository.findByMail(request.email())
-                .ifPresent((u) -> {
-                    throw NotUniqueException.emailAlreadyExists(request.email());
-                });
+        final var existing = userRepository.findByMail(request.email());
+        if (existing.isPresent())
+            throw NotUniqueException.emailAlreadyExists(request.email());
         final var user = User.builder()
                 .name(request.name())
                 .email(request.email())
@@ -41,10 +39,5 @@ public class ManageUserUseCase implements CreateUserApi, EditUserApi, GetUserApi
     @Override
     public Optional<User> getUser(String userEmail) {
         return userRepository.findByMail(userEmail);
-    }
-
-    @Override
-    public Collection<User> getUserForProject(String projectKey) {
-        return userRepository.getUserForProject(projectKey);
     }
 }

@@ -63,7 +63,7 @@ public class Task {
                 .newValue(status.name())
                 .build();
         this.status = status;
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public void setTitle(String title) {
@@ -73,7 +73,7 @@ public class Task {
                 .oldValue(this.title)
                 .newValue(title)
                 .build();
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
         this.title = title;
     }
 
@@ -84,7 +84,7 @@ public class Task {
                 .oldValue(this.description)
                 .newValue(description)
                 .build();
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
         this.description = description;
     }
 
@@ -100,7 +100,7 @@ public class Task {
                 .newValue(assigneeEmailOrNull)
                 .build();
         this.assigneeEmailOrNull = assigneeEmailOrNull;
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public Optional<Integer> getEstimation() {
@@ -115,7 +115,7 @@ public class Task {
                 .newValue(estimationOrNull == null ? null : estimationOrNull.toString())
                 .build();
         this.estimationOrNull = estimationOrNull;
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public void setDeleted() {
@@ -123,7 +123,7 @@ public class Task {
                 .type(TaskHistoryType.DELETED)
                 .build();
         this.deleted = true;
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public void addComment(String text) {
@@ -135,8 +135,8 @@ public class Task {
                 .newValue(text)
                 .build();
         final var comment = new Comment(user, time, text);
-        this.comments.add(0, comment);
-        this.historyEntries.add(0, historyEntry);
+        this.comments.addFirst(comment);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public Collection<Comment> getComments() {
@@ -151,8 +151,8 @@ public class Task {
                 .newValue(url.toString())
                 .build();
         final var implementation = new Implementation(url, description);
-        this.implementations.add(0, implementation);
-        this.historyEntries.add(0, historyEntry);
+        this.implementations.addFirst(implementation);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public Collection<Implementation> getImplementations() {
@@ -186,7 +186,7 @@ public class Task {
                 .oldValue(oldValue)
                 .newValue(valueOrNull)
                 .build();
-        this.historyEntries.add(0, historyEntry);
+        this.historyEntries.addFirst(historyEntry);
     }
 
     public Map<String, String> getFields() {

@@ -36,10 +36,9 @@ public class ManageProjectUseCase implements CreateProjectApi, EditProjectApi, A
         final var currentUser = userRepository.findByMail(userApi.currentEmail())
                 .orElseThrow(() -> NotFoundException.userNotFound(userApi.currentEmail()));
         final var initialAdminRole = new ProjectRole(currentUser, ProjectRoleType.ADMIN);
-        projectRepository.findByKey(request.key())
-                .ifPresent((p) -> {
-                    throw NotUniqueException.keyAlreadyExists(request.key());
-                });
+        final var exising = projectRepository.findByKey(request.key());
+        if (exising.isPresent())
+            throw NotUniqueException.keyAlreadyExists(request.key());
         final var project = Project.builder()
                 .key(request.key())
                 .name(request.name())

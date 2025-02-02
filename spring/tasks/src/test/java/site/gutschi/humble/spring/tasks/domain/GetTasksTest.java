@@ -12,6 +12,7 @@ import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.domain.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 class GetTasksTest {
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private GetTasksUseCase target;
 
     @MockitoBean
@@ -45,6 +47,7 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findByKey("PRO-12")).thenReturn(Optional.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
@@ -57,12 +60,20 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findByKey("PRO-12")).thenReturn(Optional.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
+        Mockito.when(project.getProjectRoles()).thenReturn(List.of(new ProjectRole(TestApplication.CURRENT_USER, ProjectRoleType.DEVELOPER)));
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var result = target.getTaskByKey("PRO-12");
 
-        assertThat(result).isEqualTo(task);
+        assertThat(result.task()).isEqualTo(task);
+        assertThat(result.deletable()).isEqualTo(false);
+        assertThat(result.editable()).isEqualTo(true);
+        assertThat(result.project()).isEqualTo(project);
+        assertThat(result.projectUsers())
+                .hasSize(1)
+                .containsEntry(TestApplication.CURRENT_USER.getEmail(), TestApplication.CURRENT_USER);
     }
 
     @Test
@@ -72,6 +83,7 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findTasks(request)).thenReturn(List.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
@@ -88,6 +100,7 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findTasks(request)).thenReturn(List.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
@@ -103,6 +116,7 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findTasksWithoutPaging(request)).thenReturn(List.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
@@ -119,6 +133,7 @@ class GetTasksTest {
         Mockito.when(task.getProjectKey()).thenReturn("PRO");
         Mockito.when(taskRepository.findTasksWithoutPaging(request)).thenReturn(List.of(task));
         final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 

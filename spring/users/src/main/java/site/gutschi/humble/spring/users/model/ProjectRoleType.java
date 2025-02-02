@@ -6,6 +6,7 @@ public enum ProjectRoleType {
     STAKEHOLDER,
     ;
 
+    @SuppressWarnings("SameReturnValue")
     public boolean canRead() {
         return true;
     }

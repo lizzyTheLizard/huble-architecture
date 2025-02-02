@@ -21,6 +21,7 @@ import java.util.Arrays;
 
 @ControllerAdvice
 @Controller
+@SuppressWarnings("SameReturnValue")
 public class ErrorControllerAdvice {
 
     @Value("${spring.mvc.log-request-details:false}")
@@ -30,7 +31,8 @@ public class ErrorControllerAdvice {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String accessDenied(HttpServletRequest request, Model model) {
         final var e = request.getAttribute(WebAttributes.ACCESS_DENIED_403);
-        model.addAttribute("status", HttpStatus.FORBIDDEN);
+        model.addAttribute("status", HttpStatus.FORBIDDEN.value());
+        model.addAttribute("error", HttpStatus.FORBIDDEN.getReasonPhrase());
         if (e == null) {
             model.addAttribute("message", "Access Denied");
         }
@@ -38,25 +40,27 @@ public class ErrorControllerAdvice {
             model.addAttribute("message", exception.getMessage());
             model.addAttribute("trace", getStackTrace(exception));
         }
-        return "customerror";
+        return "error";
     }
 
     @ExceptionHandler({NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotFoundException(NotFoundException exception, Model model) {
-        model.addAttribute("status", HttpStatus.NOT_FOUND);
+        model.addAttribute("status", HttpStatus.NOT_FOUND.value());
+        model.addAttribute("error", HttpStatus.NOT_FOUND.getReasonPhrase());
         model.addAttribute("message", exception.getMessage());
         model.addAttribute("trace", getStackTrace(exception));
-        return "customerror";
+        return "error";
     }
 
     @ExceptionHandler({NotAllowedException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String handleNotAllowedException(NotAllowedException exception, Model model) {
-        model.addAttribute("status", HttpStatus.FORBIDDEN);
+        model.addAttribute("status", HttpStatus.FORBIDDEN.value());
+        model.addAttribute("error", HttpStatus.FORBIDDEN.getReasonPhrase());
         model.addAttribute("message", exception.getMessage());
         model.addAttribute("trace", getStackTrace(exception));
-        return "customerror";
+        return "error";
     }
 
     @ExceptionHandler({ConstraintViolationException.class})
@@ -71,19 +75,21 @@ public class ErrorControllerAdvice {
             messageBuilder.append(": ");
             violations.forEach(v -> messageBuilder.append(v.getMessage()).append(", "));
         }
-        model.addAttribute("status", HttpStatus.BAD_REQUEST);
+        model.addAttribute("status", HttpStatus.BAD_REQUEST.value());
+        model.addAttribute("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
         model.addAttribute("message", messageBuilder.toString());
         model.addAttribute("trace", getStackTrace(exception));
-        return "customerror";
+        return "error";
     }
 
     @ExceptionHandler({TemplateInputException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleTemplateInputException(TemplateInputException exception, Model model) {
-        model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR);
+        model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        model.addAttribute("error", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
         model.addAttribute("message", "There was a general error while trying to answer your request");
         model.addAttribute("trace", getStackTrace(exception));
-        return "customerror";
+        return "error";
     }
 
     @ExceptionHandler({Exception.class})
@@ -91,14 +97,18 @@ public class ErrorControllerAdvice {
     public String handleGeneralException(Exception exception, Model model) {
         if (exception instanceof ErrorResponse errorResponse) {
             final var code = errorResponse.getStatusCode().value();
-            model.addAttribute("status", HttpStatus.resolve(code));
+            final var httpStatus = HttpStatus.resolve(code);
+            final var error = httpStatus != null ? httpStatus.getReasonPhrase() : "Error";
+            model.addAttribute("status", code);
+            model.addAttribute("error", error);
             model.addAttribute("message", exception.getMessage());
         } else {
-            model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR);
+            model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            model.addAttribute("error", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
             model.addAttribute("message", "There was a general error while trying to answer your request");
         }
         model.addAttribute("trace", getStackTrace(exception));
-        return "customerror";
+        return "error";
     }
 
     private String getStackTrace(Exception exception) {

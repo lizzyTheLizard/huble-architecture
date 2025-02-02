@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @SpringBootTest
 class DeleteTaskTest {
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private DeleteTaskUseCase target;
 
     @MockitoBean
@@ -115,7 +116,7 @@ class DeleteTaskTest {
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(task));
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.isActive()).thenReturn(true);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
+        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.ADMIN));
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new DeleteTaskRequest("PRO-13");

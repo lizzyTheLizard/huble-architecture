@@ -5,7 +5,8 @@ import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -55,8 +56,8 @@ class TaskTest {
     }
 
     @Test
-    void addImplementation() throws MalformedURLException {
-        final var link = new URL("https://example.com");
+    void addImplementation() throws MalformedURLException, URISyntaxException {
+        final var link = new URI("https://example.com").toURL();
         final var description = "Test Description";
         final var task = createTask();
 
