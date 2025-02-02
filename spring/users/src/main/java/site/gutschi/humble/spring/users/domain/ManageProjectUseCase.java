@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.users.domain.api.*;
+import site.gutschi.humble.spring.users.domain.ports.ProjectRepository;
+import site.gutschi.humble.spring.users.domain.ports.UserRepository;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
-import site.gutschi.humble.spring.users.domain.ports.ProjectRepository;
-import site.gutschi.humble.spring.users.domain.ports.UserRepository;
 
 import java.util.Optional;
 
@@ -33,11 +33,13 @@ public class ManageProjectUseCase implements CreateProjectApi, EditProjectApi, A
 
     @Override
     public Project createProject(CreateProjectRequest request) {
-        final var currentUser =  userRepository.findByMail(userApi.currentEmail())
+        final var currentUser = userRepository.findByMail(userApi.currentEmail())
                 .orElseThrow(() -> NotFoundException.userNotFound(userApi.currentEmail()));
         final var initialAdminRole = new ProjectRole(currentUser, ProjectRoleType.ADMIN);
         projectRepository.findByKey(request.key())
-                .ifPresent((p) -> {throw NotUniqueException.keyAlreadyExists(request.key());});
+                .ifPresent((p) -> {
+                    throw NotUniqueException.keyAlreadyExists(request.key());
+                });
         final var project = Project.builder()
                 .key(request.key())
                 .name(request.name())

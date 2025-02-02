@@ -1,15 +1,15 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:lang="${language}?: 'en'" lang="en">
-    <head th:replace="~{ index.html :: common_header(~{::title},~{},~{}) }">
-        <title th:text="${status} + ': ' + ${error}">500 Internal Server Error</title>
-    </head>
-    <body>
-        <header th:replace="~{index.html :: header}"></header>
-        <main class="container">
-            <h1 th:text="'Error ' + ${status} + ': ' + ${error}">Error 500: Internal Server Error</h1>
-            <p th:text="${message}">There was a general error while trying to answer your request</p>
-            <p>Back to <a th:href="@{/}" href="index.html">the main page</a></p>
-        </main>
-        <footer th:replace="~{index.html :: footer}"></footer>
-    </body>
+<html lang="en" th:lang="${language}?: 'en'" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{ index.html :: common_header(~{::title},~{},~{}) }">
+    <title th:text="${status} + ': ' + ${error}">500 Internal Server Error</title>
+</head>
+<body>
+<header th:replace="~{index.html :: header}"></header>
+<main class="container">
+    <h1 th:text="'Error ' + ${status} + ': ' + ${error}">Error 500: Internal Server Error</h1>
+    <p th:text="${message}">There was a general error while trying to answer your request</p>
+    <p>Back to <a href="index.html" th:href="@{/}">the main page</a></p>
+</main>
+<footer th:replace="~{index.html :: footer}"></footer>
+</body>
 </html>

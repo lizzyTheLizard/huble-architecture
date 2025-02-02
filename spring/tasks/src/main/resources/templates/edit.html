@@ -1,90 +1,96 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:lang="${language}?: 'en'" lang="en">
+<html lang="en" th:lang="${language}?: 'en'" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{ index.html :: common_header(~{::title},~{::additionalLink},~{}) }">
     <title th:text="'Edit ' + ${task.key} + ': ' + ${task.title}">Edit PRO-13: Create a new Task View</title>
     <!--suppress JSUnresolvedLibraryURL -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="../../../../../main/src/main/resources/static/css/style.css">
-    <link th:fragment="additionalLink" rel="stylesheet" href="../static/css/task.css" th:href="@{/css/task.css}">
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" rel="stylesheet">
+    <link href="../../../../../main/src/main/resources/static/css/style.css" rel="stylesheet">
+    <link href="../static/css/task.css" rel="stylesheet" th:fragment="additionalLink" th:href="@{/css/task.css}">
 </head>
-    <body>
-        <header th:replace="~{index.html :: header}"></header>
-        <main class="container">
-            <h1 th:text="'Edit '+ ${task.key} + ': ' + ${task.title}">Edit PRO-13: Create a new Task View</h1>
-            <form method="post" th:action="@{edit}">
-                <div class="row">
-                    <div class="col">
-                        <div class="form-floating">
-                            <input type="text" name="title" id="title" th:value="${task.title}" value="Create a new task view" class="form-control"/>
-                            <label for="title">Title</label>
-                        </div>
-                    </div>
+<body>
+<header th:replace="~{index.html :: header}"></header>
+<main class="container">
+    <h1 th:text="'Edit '+ ${task.key} + ': ' + ${task.title}">Edit PRO-13: Create a new Task View</h1>
+    <form method="post" th:action="@{edit}">
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <input class="form-control" id="title" name="title" th:value="${task.title}" type="text"
+                           value="Create a new task view"/>
+                    <label for="title">Title</label>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        <div class="form-floating">
-                            <textarea th:text="${task.description}" class="form-control" id="description" name="description">Create a new view page for the task</textarea>
-                            <label for="description">Description</label>
-                        </div>
-                    </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <textarea class="form-control" id="description" name="description" th:text="${task.description}">Create a new view page for the task</textarea>
+                    <label for="description">Description</label>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        <div class="form-floating">
-                            <select class="form-select" id="assigneeEmail" name="assigneeEmail">
-                                <option th:each="user : ${users.values()}"
-                                        th:value="${user.email}"
-                                        th:text="${user.name} +' ('+ ${user.email} +')'"
-                                        th:selected="${user.email} == ${task.assigneeEmail}"
-                                        selected>creator@example.com</option>
-                                <option th:remove="all">dev@example.com</option>
-                                <option th:remove="all">ba@example.com</option>
-                            </select>
-                            <label for="assigneeEmail">Assignee</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-floating">
-                            <select class="form-select" id="estimation" name="estimation">
-                                <option th:each="estimation : ${estimations}"
-                                        th:value="${estimation}"
-                                        th:text="${estimation}"
-                                        th:selected="${estimation} == ${task.estimation.orElse(null)}"
-                                        selected>3</option>
-                                <option th:remove="all">1</option>
-                                <option th:remove="all">5</option>
-                            </select>
-                            <label for="estimation">Estimation</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-floating">
-                            <select class="form-select" id="status" name="status">
-                                <option th:each="state : ${states}"
-                                        th:value="${state}"
-                                        th:text="${state}"
-                                        th:selected="${state} == ${task.status}"
-                                        selected>FUNNEL</option>
-                                <option th:remove="all">DONE</option>
-                                <option th:remove="all">REJECTED</option>
-                            </select>
-                            <label for="status">Status</label>
-                        </div>
-                    </div>
-                    <div class="col" th:each="f: ${fields}">
-                        <div class="form-floating">
-                            <input type="text" class="form-control" th:id="'field_'+${f}" id="field_f1" th:value="${task.getFields().get(f)}">
-                            <label th:for="'field_'+${f}" th:text="${f}" for="field_f1">F1</label>
-                        </div>
-                    </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-floating">
+                    <select class="form-select" id="assigneeEmail" name="assigneeEmail">
+                        <option selected
+                                th:each="user : ${users.values()}"
+                                th:selected="${user.email} == ${task.assigneeEmail}"
+                                th:text="${user.name} +' ('+ ${user.email} +')'"
+                                th:value="${user.email}">creator@example.com
+                        </option>
+                        <option th:remove="all">dev@example.com</option>
+                        <option th:remove="all">ba@example.com</option>
+                    </select>
+                    <label for="assigneeEmail">Assignee</label>
                 </div>
-                <div class="button-bar">
-                    <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    <select class="form-select" id="estimation" name="estimation">
+                        <option selected
+                                th:each="estimation : ${estimations}"
+                                th:selected="${estimation} == ${task.estimation.orElse(null)}"
+                                th:text="${estimation}"
+                                th:value="${estimation}">3
+                        </option>
+                        <option th:remove="all">1</option>
+                        <option th:remove="all">5</option>
+                    </select>
+                    <label for="estimation">Estimation</label>
                 </div>
-            </form>
-        </main>
-        <footer th:replace="~{index.html :: footer}"></footer>
-    </body>
+            </div>
+            <div class="col">
+                <div class="form-floating">
+                    <select class="form-select" id="status" name="status">
+                        <option selected
+                                th:each="state : ${states}"
+                                th:selected="${state} == ${task.status}"
+                                th:text="${state}"
+                                th:value="${state}">FUNNEL
+                        </option>
+                        <option th:remove="all">DONE</option>
+                        <option th:remove="all">REJECTED</option>
+                    </select>
+                    <label for="status">Status</label>
+                </div>
+            </div>
+            <div class="col" th:each="f: ${fields}">
+                <div class="form-floating">
+                    <input class="form-control" id="field_f1" th:id="'field_'+${f}" th:value="${task.getFields().get(f)}"
+                           type="text">
+                    <label for="field_f1" th:for="'field_'+${f}" th:text="${f}">F1</label>
+                </div>
+            </div>
+        </div>
+        <div class="button-bar">
+            <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{index.html :: footer}"></footer>
+</body>
 </html>
 
 

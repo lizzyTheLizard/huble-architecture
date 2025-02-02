@@ -20,7 +20,7 @@ public class UserRepositoryImplementation implements UserRepository {
 
     @Override
     public Optional<User> findByMail(String email) {
-        if(email.equals("test@example.com")) {
+        if (email.equals("test@example.com")) {
             final var user = User.builder()
                     .name("Test User")
                     .email("test@example.com")
@@ -34,7 +34,7 @@ public class UserRepositoryImplementation implements UserRepository {
 
     @Override
     public Collection<User> getUserForProject(String projectKey) {
-        if(projectKey.equals("PRO")) {
+        if (projectKey.equals("PRO")) {
             final var user = User.builder()
                     .name("Test User")
                     .email("test@example.com")

@@ -5,10 +5,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.tasks.domain.api.EditTaskUseCase;
-import site.gutschi.humble.spring.tasks.domain.api.EditTaskRequest;
 import site.gutschi.humble.spring.common.error.NotAllowedException;
 import site.gutschi.humble.spring.common.error.NotFoundException;
+import site.gutschi.humble.spring.tasks.domain.api.EditTaskRequest;
+import site.gutschi.humble.spring.tasks.domain.api.EditTaskUseCase;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -62,7 +62,7 @@ class EditTaskTest {
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  "assignee", 1);
+                TaskStatus.TODO, Map.of("key", "value"), "assignee", 1);
         assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.edit(request));
 
         Mockito.verify(taskRepository, Mockito.never()).save(Mockito.any());
@@ -80,7 +80,7 @@ class EditTaskTest {
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  "assignee", 1);
+                TaskStatus.TODO, Map.of("key", "value"), "assignee", 1);
         assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.edit(request));
 
         Mockito.verify(taskRepository, Mockito.never()).save(Mockito.any());
@@ -98,7 +98,7 @@ class EditTaskTest {
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  "assignee", 1);
+                TaskStatus.TODO, Map.of("key", "value"), "assignee", 1);
         assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.edit(request));
 
         Mockito.verify(taskRepository, Mockito.never()).save(Mockito.any());
@@ -110,7 +110,7 @@ class EditTaskTest {
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.empty());
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  "assignee", 1);
+                TaskStatus.TODO, Map.of("key", "value"), "assignee", 1);
         assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.edit(request));
     }
 
@@ -131,7 +131,7 @@ class EditTaskTest {
         Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  "assignee", 1);
+                TaskStatus.TODO, Map.of("key", "value"), "assignee", 1);
         target.edit(request);
 
         Mockito.verify(task).setTitle("new title");
@@ -160,7 +160,7 @@ class EditTaskTest {
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(task));
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
-                TaskStatus.TODO, Map.of("key", "value"),  null, null);
+                TaskStatus.TODO, Map.of("key", "value"), null, null);
         target.edit(request);
 
         Mockito.verify(task).setTitle("new title");

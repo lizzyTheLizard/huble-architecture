@@ -1,8 +1,8 @@
 package site.gutschi.humble.spring.users.model;
 
 import org.junit.jupiter.api.Test;
-import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.time.ZonedDateTime;
 
@@ -36,7 +36,7 @@ class ProjectTest {
         assertThat(project.getName())
                 .isEqualTo(newName);
         assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.NAME_CHANGED,null,oldName, newName));
+                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.NAME_CHANGED, null, oldName, newName));
     }
 
     @Test
@@ -60,7 +60,7 @@ class ProjectTest {
         assertThat(project.isActive())
                 .isEqualTo(false);
         assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.ACTIVATE_CHANGED,null,"true", "false"));
+                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.ACTIVATE_CHANGED, null, "true", "false"));
     }
 
     @Test
@@ -86,13 +86,13 @@ class ProjectTest {
         assertThat(project.getRole(user.getEmail()))
                 .contains(ProjectRoleType.ADMIN);
         assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ADDED,user.getEmail(), null, ProjectRoleType.ADMIN.name()));
+                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ADDED, user.getEmail(), null, ProjectRoleType.ADMIN.name()));
     }
 
     @Test
     void setUserRole_changedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com",  "pwd", false);
+        final var user = new User("user", "user@example.com", "pwd", false);
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.setUserRole(user, ProjectRoleType.STAKEHOLDER);
@@ -102,13 +102,13 @@ class ProjectTest {
         assertThat(project.getRole(user.getEmail()))
                 .contains(ProjectRoleType.STAKEHOLDER);
         assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ROLE_CHANGED,user.getEmail(), ProjectRoleType.ADMIN.name(), ProjectRoleType.STAKEHOLDER.name()));
+                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ROLE_CHANGED, user.getEmail(), ProjectRoleType.ADMIN.name(), ProjectRoleType.STAKEHOLDER.name()));
     }
 
     @Test
     void setUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com",  "pwd", false);
+        final var user = new User("user", "user@example.com", "pwd", false);
         project.setUserRole(user, ProjectRoleType.ADMIN);
         final var historySize = project.getHistoryEntries().size();
 
@@ -121,7 +121,7 @@ class ProjectTest {
     @Test
     void removeUserRole() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com",  "pwd", false);
+        final var user = new User("user", "user@example.com", "pwd", false);
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.removeUserRole(user);
@@ -131,13 +131,13 @@ class ProjectTest {
         assertThat(project.getRole(user.getEmail()))
                 .isEmpty();
         assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_REMOVED,user.getEmail(), ProjectRoleType.ADMIN.name(), null));
+                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_REMOVED, user.getEmail(), ProjectRoleType.ADMIN.name(), null));
     }
 
     @Test
     void removeUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com",  "pwd", false);
+        final var user = new User("user", "user@example.com", "pwd", false);
         project.removeUserRole(user);
         final var historySize = project.getHistoryEntries().size();
 
@@ -154,7 +154,7 @@ class ProjectTest {
                 .key("key")
                 .name("name")
                 .active(true)
-                .projectRole(new ProjectRole(new User("a", "B",  "pwd", false), ProjectRoleType.ADMIN))
+                .projectRole(new ProjectRole(new User("a", "B", "pwd", false), ProjectRoleType.ADMIN))
                 .build();
     }
 

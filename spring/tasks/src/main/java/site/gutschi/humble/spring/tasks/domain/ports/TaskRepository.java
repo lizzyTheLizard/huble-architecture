@@ -5,7 +5,6 @@ import site.gutschi.humble.spring.tasks.model.Task;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface TaskRepository {
     Optional<Task> findByKey(String taskKey);

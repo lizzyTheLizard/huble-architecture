@@ -1,6 +1,6 @@
 package site.gutschi.humble.spring.users.domain.api;
 
-public class NotUniqueException extends RuntimeException{
+public class NotUniqueException extends RuntimeException {
 
     private NotUniqueException(String message) {
         super(message);

@@ -6,5 +6,6 @@ import site.gutschi.humble.spring.users.model.User;
 
 import java.util.Map;
 
-public record GetTasksResponse(Task task, boolean editable, boolean deletable, Project project, Map<String, User> projectUsers) {
+public record GetTasksResponse(Task task, boolean editable, boolean deletable, Project project,
+                               Map<String, User> projectUsers) {
 }

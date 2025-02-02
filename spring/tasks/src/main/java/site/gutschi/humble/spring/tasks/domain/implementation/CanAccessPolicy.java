@@ -14,13 +14,13 @@ public class CanAccessPolicy {
     private final UserApi userApi;
 
     public void ensureReadAccess(Project project) {
-        if(!canRead(project)) {
+        if (!canRead(project)) {
             throw NotFoundException.projectNotFound(project.getKey());
         }
     }
 
     public boolean canRead(Project project) {
-        if(userApi.isSystemAdmin()) return true;
+        if (userApi.isSystemAdmin()) return true;
         final var currentEmail = userApi.currentEmail();
         return project.getRole(currentEmail)
                 .map(ProjectRoleType::canRead)
@@ -29,16 +29,16 @@ public class CanAccessPolicy {
 
 
     public void ensureDeleteAccess(Project project) {
-        if(!canRead(project)) {
+        if (!canRead(project)) {
             throw NotFoundException.projectNotFound(project.getKey());
         }
-        if(!canDelete(project)) {
+        if (!canDelete(project)) {
             throw new NotAllowedException("You are not allowed to delete tasks in project '" + project.getKey() + "'");
         }
     }
 
     public boolean canDelete(Project project) {
-        if(userApi.isSystemAdmin()) return true;
+        if (userApi.isSystemAdmin()) return true;
         final var currentEmail = userApi.currentEmail();
         return project.getRole(currentEmail)
                 .map(ProjectRoleType::canManage)
@@ -46,16 +46,16 @@ public class CanAccessPolicy {
     }
 
     public void ensureWriteAccess(Project project) {
-        if(!canRead(project)) {
+        if (!canRead(project)) {
             throw NotFoundException.projectNotFound(project.getKey());
         }
-        if(!canWrite(project)) {
+        if (!canWrite(project)) {
             throw new NotAllowedException("You are not allowed to write project '" + project.getKey() + "'");
         }
     }
 
     public boolean canWrite(Project project) {
-        if(userApi.isSystemAdmin()) return true;
+        if (userApi.isSystemAdmin()) return true;
         final var currentEmail = userApi.currentEmail();
         return project.getRole(currentEmail)
                 .map(ProjectRoleType::canWrite)

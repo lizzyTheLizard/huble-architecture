@@ -3,8 +3,8 @@ package site.gutschi.humble.spring.users.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
-import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.util.*;
 
@@ -13,12 +13,12 @@ public class Project {
     private final UserApi userApi;
     private final TimeApi timeApi;
     private final String key;
-    private String name;
-    private boolean active;
-    private final Collection<Integer> estimations = List.of(1,3,5);
+    private final Collection<Integer> estimations = List.of(1, 3, 5);
     private final Collection<String> fields = List.of();
     private final Collection<ProjectRole> projectRoles = new LinkedList<>();
     private final Collection<ProjectHistoryEntry> historyEntries = new LinkedList<>();
+    private String name;
+    private boolean active;
 
     @Builder
     public Project(UserApi userApi, TimeApi timeApi, String key, String name, boolean active, @Singular Collection<ProjectRole> projectRoles, @Singular Collection<ProjectHistoryEntry> historyEntries) {
@@ -31,8 +31,8 @@ public class Project {
         this.historyEntries.addAll(historyEntries);
     }
 
-    public void setName(String name){
-        if(name.equals(this.name)) return;
+    public void setName(String name) {
+        if (name.equals(this.name)) return;
         final var historyEntry = ProjectHistoryEntry.builder()
                 .user(userApi.currentEmail())
                 .timestamp(timeApi.now())
@@ -44,8 +44,8 @@ public class Project {
         historyEntries.add(historyEntry);
     }
 
-    public void setActive(boolean active){
-        if(active == this.active) return;
+    public void setActive(boolean active) {
+        if (active == this.active) return;
         final var historyEntry = ProjectHistoryEntry.builder()
                 .user(userApi.currentEmail())
                 .timestamp(timeApi.now())
@@ -58,11 +58,11 @@ public class Project {
     }
 
 
-    public void setUserRole(User user, ProjectRoleType type){
+    public void setUserRole(User user, ProjectRoleType type) {
         final var existingRole = projectRoles.stream()
                 .filter(projectRole -> projectRole.user().equals(user))
                 .findFirst();
-        if(existingRole.isEmpty()) {
+        if (existingRole.isEmpty()) {
             final var historyEntry = ProjectHistoryEntry.builder()
                     .user(userApi.currentEmail())
                     .timestamp(timeApi.now())
@@ -77,7 +77,7 @@ public class Project {
 
         projectRoles.remove(existingRole.get());
         projectRoles.add(new ProjectRole(user, type));
-        if(type == existingRole.get().type()) return;
+        if (type == existingRole.get().type()) return;
         final var historyEntryBuilder = ProjectHistoryEntry.builder()
                 .user(userApi.currentEmail())
                 .timestamp(timeApi.now())
@@ -88,11 +88,11 @@ public class Project {
         historyEntries.add(historyEntryBuilder.build());
     }
 
-    public void removeUserRole(User user){
+    public void removeUserRole(User user) {
         final var existingRole = projectRoles.stream()
                 .filter(projectRole -> projectRole.user().equals(user))
                 .findFirst();
-        if(existingRole.isEmpty()) {
+        if (existingRole.isEmpty()) {
             return;
         }
         projectRoles.remove(existingRole.get());

@@ -7,10 +7,9 @@ import site.gutschi.humble.spring.common.api.UserApi;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskTest {
     private static final String USER = "TestUser";
@@ -28,6 +27,19 @@ class TaskTest {
 
     private static final Instant NOW = Instant.now();
     private static final TimeApi TIME_API = () -> NOW;
+
+    private static Task createTask() {
+        final var task = Task.builder()
+                .userApi(USER_API)
+                .timeApi(TIME_API)
+                .id(1)
+                .status(TaskStatus.BACKLOG)
+                .build();
+        task.addComment("Old Comment");
+        task.setAssigneeEmail("Old Assignee");
+        task.setStatus(TaskStatus.BACKLOG);
+        return task;
+    }
 
     @Test
     void addComment() {
@@ -250,18 +262,5 @@ class TaskTest {
         task.setAssigneeEmail("Old Assignee");
         assertThat(task.getHistoryEntries())
                 .hasSize(historySize);
-    }
-
-    private static Task createTask() {
-        final var task = Task.builder()
-                .userApi(USER_API)
-                .timeApi(TIME_API)
-                .id(1)
-                .status(TaskStatus.BACKLOG)
-                .build();
-        task.addComment("Old Comment");
-        task.setAssigneeEmail("Old Assignee");
-        task.setStatus(TaskStatus.BACKLOG);
-        return task;
     }
 }

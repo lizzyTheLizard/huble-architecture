@@ -19,7 +19,7 @@ class ImplementationService implements UpdateImplementationsUseCase {
     @Override
     public void updateImplementations(UpdateImplementationsRequest request) {
         final var response = checkImplementationCaller.checkForImplementations(request);
-        for (var implementations: response.entries()) {
+        for (var implementations : response.entries()) {
             //Errors in one tasks are logged but do not cause the whole process to fail
             try {
                 final var existingTask = taskRepository.findByKey(implementations.taskKey())

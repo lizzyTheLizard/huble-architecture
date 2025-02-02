@@ -8,7 +8,7 @@ import site.gutschi.humble.spring.tasks.model.Task;
 public final class NotDeletedPolicy {
 
     public void ensureNotDeleted(Task task) {
-        if(task.isDeleted()) {
+        if (task.isDeleted()) {
             throw new NotAllowedException("You are not allowed to access deleted task '" + task.getKey() + "'");
         }
     }

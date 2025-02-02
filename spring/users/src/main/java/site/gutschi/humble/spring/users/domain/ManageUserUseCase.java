@@ -3,11 +3,10 @@ package site.gutschi.humble.spring.users.domain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.users.domain.api.*;
-import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.domain.ports.UserRepository;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,7 +18,9 @@ public class ManageUserUseCase implements CreateUserApi, EditUserApi, GetUserApi
     @Override
     public User createUser(CreateUserRequest request) {
         userRepository.findByMail(request.email())
-                .ifPresent((u) -> {throw NotUniqueException.emailAlreadyExists(request.email());});
+                .ifPresent((u) -> {
+                    throw NotUniqueException.emailAlreadyExists(request.email());
+                });
         final var user = User.builder()
                 .name(request.name())
                 .email(request.email())

@@ -10,9 +10,9 @@ main {
     padding-top: 7rem;
 }
 
-footer{
+footer {
     padding: 1rem 0 1rem 0;
-    background-color: rgba(var(--bs-light-rgb),1);
+    background-color: rgba(var(--bs-light-rgb), 1);
     color: var(--bs-secondary-color);
 }
 
@@ -39,6 +39,7 @@ div.button-bar button, div.button-bar a {
     div.button-bar {
         flex-direction: column;
     }
+
     div.button-bar button, div.button-bar a {
         margin-top: 0.5rem;
         width: 100%;

@@ -1,4 +1,4 @@
-module site.gutschi.humble.spring.common  {
+module site.gutschi.humble.spring.common {
     exports site.gutschi.humble.spring.common.api;
     exports site.gutschi.humble.spring.common.error;
     requires lombok;

@@ -6,6 +6,8 @@ import java.util.Collection;
 
 public interface GetTasksUseCase {
     GetTasksResponse getTaskByKey(@TaskKeyConstraint String taskKey);
+
     Collection<Task> getTasks(GetTasksRequest request);
+
     int count(GetTasksRequest request);
 }

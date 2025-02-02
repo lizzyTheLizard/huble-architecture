@@ -3,7 +3,10 @@ package site.gutschi.humble.spring.tasks.integration.web;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import site.gutschi.humble.spring.common.error.NotAllowedException;
 import site.gutschi.humble.spring.tasks.domain.api.*;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -27,13 +30,13 @@ public class TaskController {
         model.addAttribute("deletable", response.deletable());
         model.addAttribute("fields", response.project().getFields());
         model.addAttribute("users", response.projectUsers());
-       return "task";
+        return "task";
     }
 
     @GetMapping("/tasks/{key}/delete")
     public String deleteTaskView(@PathVariable("key") String key, Model model) {
         final var response = getTasksUseCase.getTaskByKey(key);
-        if(!response.deletable()){
+        if (!response.deletable()) {
             throw new NotAllowedException("You are not allowed to delete tasks in project '" + response.project().getKey() + "'");
         }
         model.addAttribute("task", response.task());
@@ -57,7 +60,7 @@ public class TaskController {
     @GetMapping("/tasks/{key}/edit")
     public String editTaskView(@PathVariable("key") String key, Model model) {
         final var response = getTasksUseCase.getTaskByKey(key);
-        if(!response.editable()){
+        if (!response.editable()) {
             throw new NotAllowedException("You are not allowed to edit tasks in project '" + response.project().getKey() + "'");
         }
         model.addAttribute("states", TaskStatus.values());

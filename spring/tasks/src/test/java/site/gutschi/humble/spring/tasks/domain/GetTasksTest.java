@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.common.error.NotFoundException;
-import site.gutschi.humble.spring.tasks.domain.api.*;
+import site.gutschi.humble.spring.tasks.domain.api.GetTasksRequest;
+import site.gutschi.humble.spring.tasks.domain.api.GetTasksUseCase;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.domain.api.GetProjectApi;
@@ -15,7 +16,6 @@ import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

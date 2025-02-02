@@ -2,8 +2,8 @@ package site.gutschi.humble.spring.users.integration.db;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.users.domain.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.domain.ports.UserRepository;
 import site.gutschi.humble.spring.users.model.Project;
@@ -27,7 +27,7 @@ public class ProjectRepositoryImplementation implements ProjectRepository {
 
     @Override
     public Optional<Project> findByKey(String key) {
-        if(key.equals("PRO")){
+        if (key.equals("PRO")) {
             final var user = userRepository.findByMail("test@example.com").orElseThrow();
             final var project = Project.builder()
                     .active(true)

@@ -3,13 +3,10 @@ package site.gutschi.humble.spring.tasks.domain.implementation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import site.gutschi.humble.spring.common.error.NotFoundException;
-import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.UserApi;
+import site.gutschi.humble.spring.common.error.NotFoundException;
 import site.gutschi.humble.spring.tasks.domain.api.*;
-import site.gutschi.humble.spring.tasks.domain.api.CreateTaskUseCase;
-import site.gutschi.humble.spring.tasks.domain.api.EditTaskUseCase;
-import site.gutschi.humble.spring.tasks.domain.api.GetTasksUseCase;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -105,7 +102,7 @@ class TaskService implements EditTaskUseCase, CommentTaskUseCase, DeleteTaskUseC
         return tasks.stream()
                 .filter(t -> {
                     final var project = projects.get(t.getProjectKey());
-                    if(project == null) return false;
+                    if (project == null) return false;
                     return canAccessPolicy.canRead(project);
                 })
                 .collect(Collectors.toList());
@@ -122,7 +119,7 @@ class TaskService implements EditTaskUseCase, CommentTaskUseCase, DeleteTaskUseC
         return (int) tasks.stream()
                 .filter(t -> {
                     final var project = projects.get(t.getProjectKey());
-                    if(project == null) return false;
+                    if (project == null) return false;
                     return canAccessPolicy.canRead(project);
                 })
                 .count();

@@ -20,6 +20,7 @@ public class NotAllowedException extends RuntimeException {
     public static NotAllowedException notAllowedToManageProject(String currentUserEmail, String projecyKey) {
         return new NotAllowedException("User " + currentUserEmail + " is not allowed to manage project " + projecyKey);
     }
+
     public static NotAllowedException notAllowedToReadProject(String currentUserEmail, String projecyKey) {
         return new NotAllowedException("User " + currentUserEmail + " is not allowed to read project " + projecyKey);
     }
