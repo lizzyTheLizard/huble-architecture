@@ -8,6 +8,7 @@ import java.time.Instant;
 public record TaskHistoryEntry(String user, Instant timestamp,
                                TaskHistoryType type, String field,
                                String oldValue, String newValue) {
+    @SuppressWarnings("unused") // Used in Thymeleaf templates
     public String description() {
         return switch (type) {
             case CREATED -> "Task created";

@@ -6,9 +6,14 @@ import site.gutschi.humble.spring.common.api.UserApi;
 import site.gutschi.humble.spring.tasks.domain.api.GetTasksRequest;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Comment;
+import site.gutschi.humble.spring.tasks.model.Implementation;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 @Service
@@ -18,6 +23,12 @@ public class InMemoryTaskRepositoryImpl implements TaskRepository {
 
     public InMemoryTaskRepositoryImpl(UserApi userApi, TimeApi timeApi) {
         nextId.put("PRO", 14);
+        URL implementationUrl;
+        try {
+            implementationUrl = new URI("https://example.com").toURL();
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         tasks.add(Task.builder()
                 .id(13)
                 .creatorEmail("test@example.com")
@@ -29,6 +40,7 @@ public class InMemoryTaskRepositoryImpl implements TaskRepository {
                 .assigneeEmail("test@example.com")
                 .timeApi(timeApi)
                 .userApi(userApi)
+                .implementation(new Implementation(implementationUrl, "This is the implementation"))
                 .title("Title of PRO-13")
                 .build());
     }

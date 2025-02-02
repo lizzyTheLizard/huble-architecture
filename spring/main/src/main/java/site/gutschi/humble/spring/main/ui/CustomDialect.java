@@ -19,6 +19,6 @@ public class CustomDialect extends AbstractProcessorDialect {
         return Set.of(
                 new NewLineAttributeTagProcessor(DIALECT_PREFIX),
                 new UserNameAttributeTagProcessor(DIALECT_PREFIX),
-                new UserH6ElementTagProcessor(DIALECT_PREFIX));
+                new TimeNameAttributeTagProcessor(DIALECT_PREFIX));
     }
 }

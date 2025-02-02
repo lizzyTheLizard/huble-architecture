@@ -11,13 +11,13 @@
 <body>
 <header th:replace="~{index.html :: header}"></header>
 <main class="container">
-    <h1 th:text="'Delete'+ ${task.key}">Delete PRO-13</h1>
+    <h1 th:text="'Delete '+ ${task.key}">Delete PRO-13</h1>
     <p>Do you really want to delete the task <a href="task.html" th:href="'../' + ${task.key}"
                                                 th:text="${task.key} + ': ' + ${task.title}">PRO-13: Create a new Task
         View</a></p>
     <form method="POST" th:action="@{delete}">
         <div class="button-bar">
-            <a class="btn btn-primary" href="task.html" th:href="@{../${task.key}}">Cancel</a>
+            <a class="btn btn-primary" href="task.html" th:href="'../'+${task.key}">Cancel</a>
             <button class="btn btn-danger" type="submit">Delete</button>
         </div>
     </form>

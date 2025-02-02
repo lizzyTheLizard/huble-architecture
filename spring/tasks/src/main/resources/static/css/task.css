@@ -42,8 +42,8 @@ textarea#description {
 }
 
 .accordion-button {
-    background-color: initial;
-    box-shadow: initial;
+    background-color: initial !important;
+    box-shadow: initial !important;
 }
 
 h5 {

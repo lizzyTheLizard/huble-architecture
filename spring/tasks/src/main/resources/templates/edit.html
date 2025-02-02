@@ -37,7 +37,7 @@
                         <option selected
                                 th:each="user : ${users.values()}"
                                 th:selected="${user.email} == ${task.assigneeEmail}"
-                                th:text="${user.name} +' ('+ ${user.email} +')'"
+                                th:username="${user}"
                                 th:value="${user.email}">creator@example.com
                         </option>
                         <option th:remove="all">dev@example.com</option>

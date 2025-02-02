@@ -28,7 +28,7 @@ public class TestApplication {
 
     @Bean
     CheckImplementationCaller checkImplementationCaller() {
-        return (_) -> new CheckImplementationsResponse(List.of());
+        return (c) -> new CheckImplementationsResponse(List.of());
     }
 
     @Bean
@@ -64,7 +64,7 @@ public class TestApplication {
 
     @Bean
     GetProjectApi getProjectApi() {
-        return (_) -> Optional.empty();
+        return (k) -> Optional.empty();
     }
 
     @Bean
