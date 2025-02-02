@@ -78,7 +78,8 @@
             </div>
             <div class="col" th:each="f: ${fields}">
                 <div class="form-floating">
-                    <input class="form-control" id="field_f1" th:id="'field_'+${f}" th:value="${task.getFields().get(f)}"
+                    <input class="form-control" id="field_f1" th:id="'field_'+${f}"
+                           th:value="${task.getFields().get(f)}"
                            type="text">
                     <label for="field_f1" th:for="'field_'+${f}" th:text="${f}">F1</label>
                 </div>
