@@ -116,6 +116,11 @@ public class Project {
                 .findFirst();
     }
 
+    public Map<String, User> getProjectUsers() {
+        return projectRoles.stream()
+                .collect(HashMap::new, (map, role) -> map.put(role.user().getEmail(), role.user()), HashMap::putAll);
+    }
+
     public Collection<ProjectHistoryEntry> getHistoryEntries() {
         return Collections.unmodifiableCollection(historyEntries);
     }

@@ -6,14 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.common.error.NotFoundException;
-import site.gutschi.humble.spring.tasks.domain.api.GetTasksRequest;
+import site.gutschi.humble.spring.tasks.domain.api.FindTasksRequest;
+import site.gutschi.humble.spring.tasks.domain.api.FindTasksResponse;
 import site.gutschi.humble.spring.tasks.domain.api.GetTasksUseCase;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCaller;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCallerRequest;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCallerResponse;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.domain.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,23 +38,12 @@ class GetTasksTest {
     @MockitoBean
     private GetProjectApi getProjectApi;
 
+    @MockitoBean
+    private SearchCaller searchCaller;
 
     @Test
     void getNonExistingTask() {
         Mockito.when(taskRepository.findByKey("PRO-12")).thenReturn(Optional.empty());
-
-        assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.getTaskByKey("PRO-12"));
-    }
-
-    @Test
-    void getWithoutAccess() {
-        final var task = Mockito.mock(Task.class);
-        Mockito.when(task.getProjectKey()).thenReturn("PRO");
-        Mockito.when(taskRepository.findByKey("PRO-12")).thenReturn(Optional.of(task));
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
 
         assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.getTaskByKey("PRO-12"));
     }
@@ -71,74 +65,28 @@ class GetTasksTest {
         assertThat(result.deletable()).isEqualTo(false);
         assertThat(result.editable()).isEqualTo(true);
         assertThat(result.project()).isEqualTo(project);
-        assertThat(result.projectUsers())
-                .hasSize(1)
-                .containsEntry(TestApplication.CURRENT_USER.getEmail(), TestApplication.CURRENT_USER);
     }
-
-    @Test
-    void findTasksFilterNotAllowed() {
-        final var request = new GetTasksRequest("PRO", null, null, null, null, 0, 10);
-        final var task = Mockito.mock(Task.class);
-        Mockito.when(task.getProjectKey()).thenReturn("PRO");
-        Mockito.when(taskRepository.findTasks(request)).thenReturn(List.of(task));
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
-
-        final var result = target.getTasks(request);
-
-        assertThat(result).isEmpty();
-    }
-
 
     @Test
     void findTasks() {
-        final var request = new GetTasksRequest("PRO", null, null, null, null, 0, 10);
-        final var task = Mockito.mock(Task.class);
-        Mockito.when(task.getProjectKey()).thenReturn("PRO");
-        Mockito.when(taskRepository.findTasks(request)).thenReturn(List.of(task));
+        final var user = Mockito.mock(User.class);
+        Mockito.when(user.getEmail()).thenReturn("test@example.com");
         final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
+        final var projectRole1 = new ProjectRole(user, ProjectRoleType.DEVELOPER);
+        final var projectRole2 = new ProjectRole(user, ProjectRoleType.ADMIN);
+        Mockito.when(project.getProjectRoles()).thenReturn(List.of(projectRole1, projectRole2));
+        final var projects = List.of(project);
+        Mockito.when(getProjectApi.getAllProjects()).thenReturn(projects);
+        final var searchRequest = new SearchCallerRequest("test", 1, 10, projects);
+        final var taskView = Mockito.mock(FindTasksResponse.TaskFindView.class);
+        final var searchResponse = new SearchCallerResponse(List.of(taskView), 3);
+        Mockito.when(searchCaller.findTasks(Mockito.eq(searchRequest))).thenReturn(searchResponse);
+        final var request = new FindTasksRequest("test", 1, 10);
 
-        final var result = target.getTasks(request);
+        final var result = target.findTasks(request);
 
-        assertThat(result).containsExactly(task);
-    }
-
-    @Test
-    void countTasksFilterNotAllowed() {
-        final var request = new GetTasksRequest("PRO", null, null, null, null, 0, 10);
-        final var task = Mockito.mock(Task.class);
-        Mockito.when(task.getProjectKey()).thenReturn("PRO");
-        Mockito.when(taskRepository.findTasksWithoutPaging(request)).thenReturn(List.of(task));
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
-
-        final var result = target.count(request);
-
-        assertThat(result).isEqualTo(0);
-    }
-
-
-    @Test
-    void count() {
-        final var request = new GetTasksRequest("PRO", null, null, null, null, 0, 10);
-        final var task = Mockito.mock(Task.class);
-        Mockito.when(task.getProjectKey()).thenReturn("PRO");
-        Mockito.when(taskRepository.findTasksWithoutPaging(request)).thenReturn(List.of(task));
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
-
-        final var result = target.count(request);
-
-        assertThat(result).isEqualTo(1);
+        assertThat(result.tasks()).containsExactly(taskView);
+        assertThat(result.projects()).containsExactly(project);
+        assertThat(result.total()).isEqualTo(3);
     }
 }

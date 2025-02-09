@@ -44,6 +44,11 @@
                            href="/tasks" th:class="'nav-link' + (${currentUrl == '/tasks'} ? ' active': '')">All
                             Tasks</a>
                     </li>
+                    <li class="nav-item">
+                        <a aria-current="page" class="nav-link"
+                           href="/tasks/create" th:class="'nav-link' + (${currentUrl == '/tasks'} ? ' active': '')">Create new
+                            Task</a>
+                    </li>
                     <li class="nav-item" th:if="${currentProject}">
                         <a aria-current="page"
                            class="nav-link" href="/projects/PRO"
@@ -52,8 +57,8 @@
                             Project</a>
                     </li>
                 </ul>
-                <form action="search.html" class="d-flex" role="search">
-                    <input aria-label="Search" class="form-control me-2" placeholder="Search" type="search">
+                <form action="/tasks" class="d-flex" role="search">
+                    <input aria-label="Search" class="form-control me-2" name="text" placeholder="Search" type="search">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
             </div>

@@ -12,6 +12,5 @@ import java.util.Map;
 @Builder
 public record EditTaskRequest(@TaskKeyConstraint String taskKey, @NotBlank String title, @NotNull String description,
                               @NotNull TaskStatus status,
-                              @Singular @NotNull Map<String, String> additionalFields,
                               String assignee, @Positive Integer estimation) {
 }

@@ -34,9 +34,10 @@
             <div class="col">
                 <div class="form-floating">
                     <select class="form-select" id="assigneeEmail" name="assigneeEmail">
+                        <option th:selected="${task.assigneeEmail.isEmpty()}">None</option>
                         <option selected
                                 th:each="user : ${users.values()}"
-                                th:selected="${user.email} == ${task.assigneeEmail}"
+                                th:selected="${user.email} == ${task.assigneeEmail.orElse(null)}"
                                 th:username="${user}"
                                 th:value="${user.email}">creator@example.com
                         </option>
@@ -49,6 +50,7 @@
             <div class="col">
                 <div class="form-floating">
                     <select class="form-select" id="estimation" name="estimation">
+                        <option th:selected="${task.estimation.isEmpty()}">None</option>
                         <option selected
                                 th:each="estimation : ${estimations}"
                                 th:selected="${estimation} == ${task.estimation.orElse(null)}"
@@ -74,14 +76,6 @@
                         <option th:remove="all">REJECTED</option>
                     </select>
                     <label for="status">Status</label>
-                </div>
-            </div>
-            <div class="col" th:each="f: ${fields}">
-                <div class="form-floating">
-                    <input class="form-control" id="field_f1" th:id="'field_'+${f}"
-                           th:value="${task.getFields().get(f)}"
-                           type="text">
-                    <label for="field_f1" th:for="'field_'+${f}" th:text="${f}">F1</label>
                 </div>
             </div>
         </div>

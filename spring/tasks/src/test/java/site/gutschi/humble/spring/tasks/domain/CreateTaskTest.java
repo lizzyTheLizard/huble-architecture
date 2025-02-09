@@ -41,16 +41,6 @@ class CreateTaskTest {
     }
 
     @Test
-    void createTaskWithoutAccess() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.empty());
-        Mockito.when(getProjectApi.getProject("PRO")).thenReturn(Optional.of(project));
-
-        CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
-        assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.create(request));
-    }
-
-    @Test
     void createTaskReadAccessOnly() {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.STAKEHOLDER));
@@ -92,8 +82,6 @@ class CreateTaskTest {
         assertThat(createdTask.getAssigneeEmail()).isEmpty();
         assertThat(createdTask.getEstimation()).isEmpty();
         assertThat(createdTask.getComments()).isEmpty();
-        assertThat(createdTask.getImplementations()).isEmpty();
-        assertThat(createdTask.getFields()).isEmpty();
         assertThat(createdTask.getHistoryEntries()).isEmpty();
     }
 }

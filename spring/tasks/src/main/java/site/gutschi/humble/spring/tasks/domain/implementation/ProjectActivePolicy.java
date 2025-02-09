@@ -8,7 +8,7 @@ import site.gutschi.humble.spring.users.model.Project;
 public class ProjectActivePolicy {
     public void ensureProjectIsActive(Project project) {
         if (!project.isActive()) {
-            throw new NotAllowedException("You are not allowed to access archived project '" + project.getKey() + "'");
+            throw new NotAllowedException("You are not allowed to access archived projectKey '" + project.getKey() + "'");
         }
     }
 }

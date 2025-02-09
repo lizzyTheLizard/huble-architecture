@@ -3,12 +3,13 @@ package site.gutschi.humble.spring.tasks.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
+import lombok.extern.slf4j.Slf4j;
 import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
 
-import java.net.URL;
 import java.util.*;
 
+@Slf4j
 public class Task {
     private final UserApi userApi;
     private final TimeApi timeApi;
@@ -18,9 +19,7 @@ public class Task {
     @Getter
     private final String creatorEmail;
     private final List<Comment> comments = new LinkedList<>();
-    private final List<Implementation> implementations = new LinkedList<>();
     private final List<TaskHistoryEntry> historyEntries = new LinkedList<>();
-    private final Map<String, String> fields = new HashMap<>();
     public Integer estimationOrNull;
     @Getter
     private TaskStatus status;
@@ -33,7 +32,9 @@ public class Task {
     private boolean deleted;
 
     @Builder
-    public Task(UserApi userApi, TimeApi timeApi, int id, String projectKey, String creatorEmail, TaskStatus status, String title, String description, String assigneeEmail, Integer estimation, boolean deleted, @Singular Collection<Comment> comments, @Singular Collection<Implementation> implementations, @Singular Collection<TaskHistoryEntry> historyEntries, @Singular Map<String, String> fields) {
+    public Task(UserApi userApi, TimeApi timeApi, int id, String projectKey, String creatorEmail, TaskStatus status,
+                String title, String description, String assigneeEmail, Integer estimation, boolean deleted,
+                @Singular Collection<Comment> comments, @Singular Collection<TaskHistoryEntry> historyEntries) {
         this.userApi = userApi;
         this.timeApi = timeApi;
         this.id = id;
@@ -46,9 +47,7 @@ public class Task {
         this.estimationOrNull = estimation;
         this.deleted = deleted;
         if (comments != null) this.comments.addAll(comments);
-        if (implementations != null) this.implementations.addAll(implementations);
         if (historyEntries != null) this.historyEntries.addAll(historyEntries);
-        if (fields != null) this.fields.putAll(fields);
     }
 
     public String getKey() {
@@ -64,6 +63,7 @@ public class Task {
                 .build();
         this.status = status;
         this.historyEntries.addFirst(historyEntry);
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public void setTitle(String title) {
@@ -75,6 +75,7 @@ public class Task {
                 .build();
         this.historyEntries.addFirst(historyEntry);
         this.title = title;
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public void setDescription(String description) {
@@ -86,6 +87,7 @@ public class Task {
                 .build();
         this.historyEntries.addFirst(historyEntry);
         this.description = description;
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public Optional<String> getAssigneeEmail() {
@@ -101,6 +103,7 @@ public class Task {
                 .build();
         this.assigneeEmailOrNull = assigneeEmailOrNull;
         this.historyEntries.addFirst(historyEntry);
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public Optional<Integer> getEstimation() {
@@ -116,6 +119,7 @@ public class Task {
                 .build();
         this.estimationOrNull = estimationOrNull;
         this.historyEntries.addFirst(historyEntry);
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public void setDeleted() {
@@ -124,6 +128,7 @@ public class Task {
                 .build();
         this.deleted = true;
         this.historyEntries.addFirst(historyEntry);
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public void addComment(String text) {
@@ -137,60 +142,15 @@ public class Task {
         final var comment = new Comment(user, time, text);
         this.comments.addFirst(comment);
         this.historyEntries.addFirst(historyEntry);
+        log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
     public Collection<Comment> getComments() {
         return Collections.unmodifiableCollection(this.comments);
     }
 
-    public void addImplementation(URL url, String description) {
-        final var time = timeApi.now();
-        final var historyEntry = historyBuilder()
-                .timestamp(time)
-                .type(TaskHistoryType.IMPLEMENTED)
-                .newValue(url.toString())
-                .build();
-        final var implementation = new Implementation(url, description);
-        this.implementations.addFirst(implementation);
-        this.historyEntries.addFirst(historyEntry);
-    }
-
-    public Collection<Implementation> getImplementations() {
-        return Collections.unmodifiableCollection(this.implementations);
-    }
-
     public Collection<TaskHistoryEntry> getHistoryEntries() {
         return Collections.unmodifiableCollection(this.historyEntries);
-    }
-
-    public void setAdditionalFields(Map<String, String> additionalField) {
-        this.fields.keySet().stream().filter(key -> !additionalField.containsKey(key)).forEach(key -> setField(key, null));
-        additionalField.forEach((key, newValue) -> {
-            final var oldValue = this.fields.get(key);
-            if (Objects.equals(oldValue, newValue)) return;
-            setField(key, newValue);
-        });
-    }
-
-    private void setField(String field, String valueOrNull) {
-        final var oldValue = this.fields.get(field);
-        if (Objects.equals(oldValue, valueOrNull)) return;
-        if (valueOrNull == null) {
-            this.fields.remove(field);
-        } else {
-            this.fields.put(field, valueOrNull);
-        }
-        final var historyEntry = historyBuilder()
-                .type(TaskHistoryType.FIELD_CHANGED)
-                .field(field)
-                .oldValue(oldValue)
-                .newValue(valueOrNull)
-                .build();
-        this.historyEntries.addFirst(historyEntry);
-    }
-
-    public Map<String, String> getFields() {
-        return Collections.unmodifiableMap(this.fields);
     }
 
     private TaskHistoryEntry.TaskHistoryEntryBuilder historyBuilder() {

@@ -6,13 +6,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
-import site.gutschi.humble.spring.tasks.domain.api.GetTasksRequest;
-import site.gutschi.humble.spring.tasks.domain.ports.CheckImplementationCaller;
-import site.gutschi.humble.spring.tasks.domain.ports.CheckImplementationsResponse;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCaller;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCallerRequest;
+import site.gutschi.humble.spring.tasks.domain.ports.SearchCallerResponse;
 import site.gutschi.humble.spring.tasks.domain.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.domain.api.GetProjectApi;
 import site.gutschi.humble.spring.users.domain.api.GetUserApi;
+import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 
 import java.time.Instant;
@@ -25,11 +26,6 @@ import java.util.Optional;
 public class TestApplication {
     public static final User CURRENT_USER = new User("Developer", "dev@example.com", "pwd", false);
     public static final Instant NOW = Instant.now();
-
-    @Bean
-    CheckImplementationCaller checkImplementationCaller() {
-        return (c) -> new CheckImplementationsResponse(List.of());
-    }
 
     @Bean
     TaskRepository taskRepository() {
@@ -46,16 +42,6 @@ public class TestApplication {
             }
 
             @Override
-            public Collection<Task> findTasksWithoutPaging(GetTasksRequest request) {
-                return List.of();
-            }
-
-            @Override
-            public Collection<Task> findTasks(GetTasksRequest request) {
-                return List.of();
-            }
-
-            @Override
             public int nextId(String projectKey) {
                 return 42;
             }
@@ -63,8 +49,35 @@ public class TestApplication {
     }
 
     @Bean
+    SearchCaller searchCaller() {
+        return new SearchCaller() {
+            @Override
+            public void informUpdatedTasks(Task ...tasks) { }
+
+            @Override
+            public void clear() { }
+
+            @Override
+            public SearchCallerResponse findTasks(SearchCallerRequest request) {
+                return new SearchCallerResponse(List.of(), 0);
+            }
+        };
+    }
+
+
+    @Bean
     GetProjectApi getProjectApi() {
-        return (k) -> Optional.empty();
+        return new GetProjectApi() {
+            @Override
+            public Optional<Project> getProject(String projectKey) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Collection<Project> getAllProjects() {
+                return List.of();
+            }
+        };
     }
 
     @Bean

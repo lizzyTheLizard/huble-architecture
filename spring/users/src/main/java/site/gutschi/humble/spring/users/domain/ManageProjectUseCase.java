@@ -10,6 +10,7 @@ import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -60,6 +61,14 @@ public class ManageProjectUseCase implements CreateProjectApi, EditProjectApi, A
 
     @Override
     public Optional<Project> getProject(String projectKey) {
-        return projectRepository.findByKey(projectKey);
+        return projectRepository.findByKey(projectKey)
+                .filter(allowedToAccessPolicy::canRead);
+    }
+
+    @Override
+    public Collection<Project> getAllProjects() {
+        return projectRepository.findAll().stream()
+                .filter(allowedToAccessPolicy::canRead)
+                .toList();
     }
 }

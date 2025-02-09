@@ -4,11 +4,7 @@ import org.junit.jupiter.api.Test;
 import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.common.api.UserApi;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,20 +49,6 @@ class TaskTest {
                 .contains(new Comment(USER, NOW, comment));
         assertThat(task.getHistoryEntries())
                 .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.COMMENTED, null, null, comment));
-    }
-
-    @Test
-    void addImplementation() throws MalformedURLException, URISyntaxException {
-        final var link = new URI("https://example.com").toURL();
-        final var description = "Test Description";
-        final var task = createTask();
-
-        task.addImplementation(link, description);
-
-        assertThat(task.getImplementations())
-                .contains(new Implementation(link, description));
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.IMPLEMENTED, null, null, link.toString()));
     }
 
     @Test
@@ -136,49 +118,6 @@ class TaskTest {
 
         task.setDescription(task.getDescription());
 
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
-    }
-
-    @Test
-    void setAdditionalFields_initial() {
-        final var field = "key2";
-        final var newValue = "New Value";
-        final var task = createTask();
-
-        task.setAdditionalFields(Map.of(field, newValue));
-
-        assertThat(task.getFields())
-                .containsEntry(field, newValue);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.FIELD_CHANGED, field, null, newValue));
-    }
-
-    @Test
-    void setField_update() {
-        final var field = "key";
-        final var newValue = "New Value";
-        final var oldValue = "Old Value";
-        final var task = createTask();
-        task.setAdditionalFields(Map.of(field, oldValue));
-
-        task.setAdditionalFields(Map.of(field, newValue));
-
-        assertThat(task.getFields())
-                .containsEntry(field, newValue);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.FIELD_CHANGED, field, oldValue, newValue));
-    }
-
-    @Test
-    void setField_ignoreUnchanged() {
-        final var field = "key";
-        final var oldValue = "Old Value";
-        final var task = createTask();
-        task.setAdditionalFields(Map.of(field, oldValue));
-        final var historySize = task.getHistoryEntries().size();
-
-        task.setAdditionalFields(Map.of(field, oldValue));
         assertThat(task.getHistoryEntries())
                 .hasSize(historySize);
     }

@@ -52,23 +52,12 @@
             <p id="estimation" th:if="${task.estimation.isPresent()}" th:text="${task.estimation.get()}">5</p>
             <label for="status">Status</label>
             <p id="status" th:text="${task.status}">FUNNEL</p>
-            <th:block th:each="f : ${fields}">
-                <label for="F1" th:text="${f}">F1</label>
-                <p id="F1" th:id="${f}" th:text="${task.fields.get(f)}">Value</p>
-            </th:block>
 
             <div class="button-bar">
                 <a class="btn btn-danger" href="delete.html" th:href="@{${task.key} + '/delete'}" th:if="${deletable}">Delete</a>
                 <a class="btn btn-primary" href="edit.html" th:href="@{${task.key} + '/edit'}"
                    th:if="${editable}">Edit</a>
-                <!-- TODO: Button to move forward -->
             </div>
-            <h5 th:if="${task.implementations.size() > 0}">Implementations</h5>
-            <a href="https://www.google.com"
-               th:each="implementation: ${task.implementations}"
-               th:href="@{${implementation.url()}}"
-               th:text="${implementation.description() ?: implementation.url()}">PRO-13: Create a new Task View</a>
-
             <div class="accordion accordion-flush" id="historyAccordion">
                 <div class="accordion-item">
                     <div class="accordion-header">

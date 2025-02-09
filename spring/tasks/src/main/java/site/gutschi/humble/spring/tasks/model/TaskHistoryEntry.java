@@ -13,9 +13,7 @@ public record TaskHistoryEntry(String user, Instant timestamp,
         return switch (type) {
             case CREATED -> "Task created";
             case COMMENTED -> "Comment added";
-            case IMPLEMENTED -> "Implementation added";
             case STATUS_CHANGED -> String.format("Status changed from %s to %s", oldValue, newValue);
-            case FIELD_CHANGED -> String.format("Field %s changed from %s to %s", field, oldValue, newValue);
             case TITLE_CHANGED -> String.format("Title changed %s to %s", oldValue, newValue);
             case DESCRIPTION_CHANGED -> String.format("Description changed %s to %s", oldValue, newValue);
             case DELETED -> "Task deleted";

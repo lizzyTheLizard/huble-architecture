@@ -27,10 +27,18 @@ public class AllowedToAccessPolicy {
 
     public void ensureCanEdit(User user) {
         final var currentUser = getCurrentUser();
-        if (user.isSystemAdmin()) return;
+        if (currentUser.isSystemAdmin()) return;
         if (!currentUser.getEmail().equals(user.getEmail())) {
             throw NotAllowedException.notAllowedToManageUser(currentUser.getEmail(), user.getEmail());
         }
+    }
+
+    public boolean canRead(Project project) {
+        final var currentUser = getCurrentUser();
+        if (currentUser.isSystemAdmin()) return true;
+        return project.getProjectRoles().stream()
+                .filter(role -> role.user().getEmail().equals(currentUser.getEmail()))
+                .anyMatch(role -> role.type().canRead());
     }
 
     private User getCurrentUser() {
