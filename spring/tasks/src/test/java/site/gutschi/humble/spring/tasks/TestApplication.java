@@ -5,7 +5,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
@@ -16,7 +15,6 @@ import site.gutschi.humble.spring.users.api.GetUserUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +23,6 @@ import java.util.Optional;
 @ComponentScan
 public class TestApplication {
     public static final User CURRENT_USER = new User("Developer", "dev@example.com", "pwd", false);
-    public static final Instant NOW = Instant.now();
 
     @Bean
     TaskRepository taskRepository() {
@@ -99,10 +96,5 @@ public class TestApplication {
                 return false;
             }
         };
-    }
-
-    @Bean
-    TimeApi timeApi() {
-        return () -> NOW;
     }
 }

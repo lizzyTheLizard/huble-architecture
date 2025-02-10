@@ -10,9 +10,9 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 public class User {
+    private final String email;
+    private final String password;
+    private final boolean systemAdmin;
     @Setter
     private String name;
-    private String email;
-    private String password;
-    private boolean systemAdmin;
 }

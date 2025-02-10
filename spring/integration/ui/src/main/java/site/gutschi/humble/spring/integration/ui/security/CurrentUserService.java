@@ -13,7 +13,7 @@ public class CurrentUserService implements CurrentUserApi {
 
     @Override
     public boolean isSystemAdmin() {
-        //TODO: Implement system admin check
-        return false;
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
     }
 }

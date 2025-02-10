@@ -2,7 +2,7 @@ package site.gutschi.humble.spring.users.model;
 
 import org.junit.jupiter.api.Test;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.time.Instant;
 
@@ -23,7 +23,10 @@ class ProjectTest {
     };
 
     private static final Instant NOW = Instant.now();
-    private static final TimeApi TIME_API = () -> NOW;
+
+    public ProjectTest() {
+        TimeHelper.setNow(NOW);
+    }
 
     @Test
     void setName() {
@@ -77,7 +80,7 @@ class ProjectTest {
     @Test
     void setUserRole_newUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com", "pwd", false);
+        final var user = new User("user@example.com", "pwd", false, "user");
 
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
@@ -92,7 +95,7 @@ class ProjectTest {
     @Test
     void setUserRole_changedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com", "pwd", false);
+        final var user = new User("user@example.com", "pwd", false, "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.setUserRole(user, ProjectRoleType.STAKEHOLDER);
@@ -108,7 +111,7 @@ class ProjectTest {
     @Test
     void setUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com", "pwd", false);
+        final var user = new User("user@example.com", "pwd", false, "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
         final var historySize = project.getHistoryEntries().size();
 
@@ -121,7 +124,7 @@ class ProjectTest {
     @Test
     void removeUserRole() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com", "pwd", false);
+        final var user = new User("user@example.com", "pwd", false, "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.removeUserRole(user);
@@ -137,7 +140,7 @@ class ProjectTest {
     @Test
     void removeUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user", "user@example.com", "pwd", false);
+        final var user = new User("user@example.com", "pwd", false, "user");
         project.removeUserRole(user);
         final var historySize = project.getHistoryEntries().size();
 
@@ -150,12 +153,10 @@ class ProjectTest {
     private Project createProject() {
         return Project.builder()
                 .currentUserApi(USER_API)
-                .timeApi(TIME_API)
                 .key("key")
                 .name("name")
                 .active(true)
-                .projectRole(new ProjectRole(new User("a", "B", "pwd", false), ProjectRoleType.ADMIN))
+                .projectRole(new ProjectRole(new User("B", "pwd", false, "a"), ProjectRoleType.ADMIN))
                 .build();
     }
-
 }

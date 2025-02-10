@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.TimeHelper;
 import site.gutschi.humble.spring.tasks.api.FindTasksResponse;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -154,7 +154,6 @@ public class SolrTests {
     private Task createTask(int i) {
         return Task.builder()
                 .currentUserApi(Mockito.mock(CurrentUserApi.class))
-                .timeApi(Mockito.mock(TimeApi.class))
                 .creatorEmail("test@example.com")
                 .status(TaskStatus.FUNNEL)
                 .projectKey("PRO")

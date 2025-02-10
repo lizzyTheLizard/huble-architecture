@@ -2,7 +2,7 @@ package site.gutschi.humble.spring.tasks.model;
 
 import org.junit.jupiter.api.Test;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeApi;
+import site.gutschi.humble.spring.common.api.TimeHelper;
 
 import java.time.Instant;
 
@@ -23,12 +23,14 @@ class TaskTest {
     };
 
     private static final Instant NOW = Instant.now();
-    private static final TimeApi TIME_API = () -> NOW;
+
+    public TaskTest() {
+        TimeHelper.setNow(NOW);
+    }
 
     private static Task createTask() {
         final var task = Task.builder()
                 .currentUserApi(USER_API)
-                .timeApi(TIME_API)
                 .id(1)
                 .status(TaskStatus.BACKLOG)
                 .build();

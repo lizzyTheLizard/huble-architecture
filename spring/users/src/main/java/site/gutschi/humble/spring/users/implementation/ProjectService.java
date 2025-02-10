@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.users.api.*;
 import site.gutschi.humble.spring.users.model.Project;
-import site.gutschi.humble.spring.users.model.ProjectRole;
-import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
@@ -23,6 +21,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     private final CurrentUserApi currentUserApi;
     private final AllowedToAccessPolicy allowedToAccessPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
+    private final CanCreateProjectPolicy canCreateProjectPolicy;
 
     @Override
     public void assignUser(AssignUserRequest request) {
@@ -40,14 +39,9 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     public Project createProject(CreateProjectRequest request) {
         final var currentUser = userRepository.findByMail(currentUserApi.currentEmail())
                 .orElseThrow(() -> new UserNotFoundException(currentUserApi.currentEmail()));
-        final var initialAdminRole = new ProjectRole(currentUser, ProjectRoleType.ADMIN);
         keyUniquePolicy.ensureProjectKeyUnique(request.key());
-        final var project = Project.builder()
-                .key(request.key())
-                .name(request.name())
-                .projectRole(initialAdminRole)
-                .build();
-        projectRepository.save(project);
+        canCreateProjectPolicy.ensureCanCreateProject();
+        final var project = Project.createNew(request.key(), request.name(), currentUser);
         log.info("Project {} created", project.getKey());
         return project;
     }

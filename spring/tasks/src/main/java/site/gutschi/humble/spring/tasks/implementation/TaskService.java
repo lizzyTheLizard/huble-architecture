@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeApi;
 import site.gutschi.humble.spring.tasks.api.*;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -22,7 +21,6 @@ import java.util.Collection;
 @Slf4j
 public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTaskUseCase {
     private final CurrentUserApi currentUserApi;
-    private final TimeApi timeApi;
     private final GetProjectUseCase getProjectUseCase;
     private final TaskRepository taskRepository;
     private final CanAccessPolicy canAccessPolicy;
@@ -111,7 +109,6 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
                 .status(TaskStatus.FUNNEL)
                 .title(request.title())
                 .description(request.description())
-                .timeApi(timeApi)
                 .currentUserApi(currentUserApi)
                 .build();
         taskRepository.save(task);

@@ -69,7 +69,7 @@ public class ErrorControllerAdvice {
         return handleNotFoundException(notFoundException, model);
     }
 
-    @ExceptionHandler({EditTaskNotAllowedException.class, ManageProjectNotAllowedException.class, ManageUserNotAllowedException.class})
+    @ExceptionHandler({EditTaskNotAllowedException.class, ManageProjectNotAllowedException.class, ManageUserNotAllowedException.class, CreateProjectNotAllowedException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public String handleNotAllowedException(Exception exception, Model model) {
         model.addAttribute("status", HttpStatus.FORBIDDEN.value());
