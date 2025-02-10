@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.thymeleaf.exceptions.TemplateInputException;
 import site.gutschi.humble.spring.tasks.api.EditTaskNotAllowedException;
+import site.gutschi.humble.spring.tasks.api.TaskDeletedException;
 import site.gutschi.humble.spring.tasks.api.TaskNotFoundException;
 import site.gutschi.humble.spring.users.api.*;
 
@@ -58,6 +59,13 @@ public class ErrorControllerAdvice {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotVisibleException(ProjectNotVisibleException exception, Model model) {
         final var notFoundException = new ProjectNotFoundException(exception.getProjectKey());
+        return handleNotFoundException(notFoundException, model);
+    }
+
+    @ExceptionHandler({TaskDeletedException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleDeletedException(TaskDeletedException exception, Model model) {
+        final var notFoundException = new TaskNotFoundException(exception.getTaskKey());
         return handleNotFoundException(notFoundException, model);
     }
 

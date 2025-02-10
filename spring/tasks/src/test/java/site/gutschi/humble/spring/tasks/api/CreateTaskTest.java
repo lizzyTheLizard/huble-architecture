@@ -44,7 +44,7 @@ class CreateTaskTest {
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
 
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
-        assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.create(request));
+        assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.create(request));
     }
 
     @Test
@@ -55,7 +55,7 @@ class CreateTaskTest {
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
 
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
-        assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.create(request));
+        assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.create(request));
     }
 
     @Test

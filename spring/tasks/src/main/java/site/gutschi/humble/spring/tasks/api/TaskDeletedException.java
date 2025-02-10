@@ -7,7 +7,7 @@ public class TaskDeletedException extends RuntimeException {
     private final String taskKey;
 
     public TaskDeletedException(String taskKey) {
-        super("Task '" + taskKey + "' could not be found");
+        super("Task '" + taskKey + "' has been deleted");
         this.taskKey = taskKey;
     }
 }
