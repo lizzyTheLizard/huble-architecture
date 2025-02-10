@@ -9,6 +9,8 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.Optional;
 
+//TODO: Remove suppress warnings if all UseCases are used from UI
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 @Slf4j

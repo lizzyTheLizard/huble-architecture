@@ -12,6 +12,8 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 import java.util.Collection;
 import java.util.Optional;
 
+//TODO: Remove suppress warnings if all UseCases are used from UI
+@SuppressWarnings("unused")
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -53,6 +55,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
         allowedToAccessPolicy.ensureCanManage(project);
         project.setName(request.name());
         project.setActive(request.active());
+        project.setEstimations(request.estimations());
         projectRepository.save(project);
         log.info("Project {} edited", project.getKey());
     }

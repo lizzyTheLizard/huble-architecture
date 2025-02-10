@@ -21,7 +21,7 @@
     <h1 th:text="${task.key} + ': ' + ${task.title}">PRO-13: Create a new Task View</h1>
     <div class="row">
         <div class="col">
-            <p gs:nltext="${task.description}">Lorem ipsum</p>
+            <p gs:newLineText="${task.description}">Lorem ipsum</p>
             <form action="task.html" method="POST" th:action="${task.key} + '/comment'">
                 <label for="comment">New Comment</label>
                 <textarea class="form-control" id="comment" name="comment"></textarea>
@@ -34,7 +34,8 @@
                     <th:block gs:username="${users.get(comment.user)}">Hans (test@example.com)</th:block>
                     <th:block gs:time="${comment.timestamp}">01.01.2024 13:34</th:block>
                 </h6>
-                <p gs:nltext="${comment.text}">Some quick example text to build on the card title and make up the bulk
+                <p gs:newLineText="${comment.text}">Some quick example text to build on the card title and make up the
+                    bulk
                     of the card's content.</p>
             </div>
             <div th:remove="all">
@@ -42,7 +43,7 @@
                 <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
             </div>
         </div>
-        <div class="col sidecol">
+        <div class="col side-column">
             <label for="creatorEmail">Creator</label>
             <p gs:username="${users.get(task.creatorEmail)}" id="creatorEmail">Hans (test@example.com)</p>
             <label for="assigneeEmail">Assignee</label>
@@ -72,7 +73,8 @@
                                     <th:block gs:username="${users.get(entry.user)}">Hans (test@example.com)</th:block>
                                     <th:block th:time="${entry.timestamp()}">01.01.2024 13:34</th:block>
                                 </h6>
-                                <p gs:nltext="${entry.description()}">Some quick example text to build on the card title
+                                <p gs:newLineText="${entry.description()}">Some quick example text to build on the card
+                                    title
                                     and make up the bulk of the card's content.</p>
                             </div>
                             <div th:remove="all">

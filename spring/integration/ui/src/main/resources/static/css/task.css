@@ -4,14 +4,14 @@ h1 {
     align-items: center;
 }
 
-.sidecol {
+.side-column {
     width: 25%;
     min-width: 20rem;
     flex: 0 0 auto;
 }
 
 @media (max-width: 767px) {
-    .sidecol {
+    .side-column {
         min-width: 100%
     }
 }

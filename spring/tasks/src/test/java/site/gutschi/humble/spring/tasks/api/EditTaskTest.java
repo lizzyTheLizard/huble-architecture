@@ -78,7 +78,7 @@ class EditTaskTest {
 
         final var request = new EditTaskRequest("PRO-13", "new title", "new description",
                 TaskStatus.TODO, "assigneeEmail", 1);
-        assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.edit(request));
+        assertThatExceptionOfType(TaskDeletedException.class).isThrownBy(() -> target.edit(request));
 
         Mockito.verify(taskRepository, Mockito.never()).save(Mockito.any());
     }
@@ -256,7 +256,7 @@ class EditTaskTest {
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
 
         final var request = new CommentTaskRequest("PRO-13", "new comment");
-        assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.comment(request));
+        assertThatExceptionOfType(TaskDeletedException.class).isThrownBy(() -> target.comment(request));
 
         Mockito.verify(taskRepository, Mockito.never()).save(Mockito.any());
     }

@@ -2,7 +2,7 @@ package site.gutschi.humble.spring.tasks.model;
 
 import org.junit.jupiter.api.Test;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeHelper;
+import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.time.Instant;
 

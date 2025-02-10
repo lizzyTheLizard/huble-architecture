@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeHelper;
+import site.gutschi.humble.spring.common.helper.TimeHelper;
 import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
@@ -19,6 +19,7 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.stream.IntStream;
 
+//TODO: Replace by real database
 @Service
 @RequiredArgsConstructor
 public class InMemoryInitializer {
@@ -77,7 +78,7 @@ public class InMemoryInitializer {
         searchCaller.informUpdatedTasks(tasks);
     }
 
-    private Task createTask(User user1, User user2, int i){
+    private Task createTask(User user1, User user2, int i) {
         return Task.builder()
                 .id(taskRepository.nextId("PRO"))
                 .creatorEmail(user1.getEmail())

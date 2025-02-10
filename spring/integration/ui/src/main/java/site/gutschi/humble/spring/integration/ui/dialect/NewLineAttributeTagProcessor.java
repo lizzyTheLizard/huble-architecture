@@ -10,7 +10,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.unbescape.html.HtmlEscape;
 
 public class NewLineAttributeTagProcessor extends AbstractAttributeTagProcessor {
-    private final static String ATTRIBUTE_NAME = "nltext";
+    private final static String ATTRIBUTE_NAME = "newLineText";
 
     public NewLineAttributeTagProcessor(String dialectPrefix) {
         super(

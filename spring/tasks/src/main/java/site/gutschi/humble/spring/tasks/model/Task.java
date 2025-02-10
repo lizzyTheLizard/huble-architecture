@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.common.api.TimeHelper;
+import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.util.*;
 

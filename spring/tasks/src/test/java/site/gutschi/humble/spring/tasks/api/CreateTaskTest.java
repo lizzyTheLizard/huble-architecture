@@ -9,18 +9,20 @@ import site.gutschi.humble.spring.tasks.TestApplication;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
+import site.gutschi.humble.spring.users.api.ProjectNotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest
 class CreateTaskTest {
     @Autowired
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private CreateTaskUseCase target;
 
     @MockitoBean
@@ -34,7 +36,7 @@ class CreateTaskTest {
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.empty());
 
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
-        assertThatExceptionOfType(TaskNotFoundException.class).isThrownBy(() -> target.create(request));
+        assertThatExceptionOfType(ProjectNotFoundException.class).isThrownBy(() -> target.create(request));
     }
 
     @Test
@@ -81,4 +83,17 @@ class CreateTaskTest {
         assertThat(createdTask.getComments()).isEmpty();
         assertThat(createdTask.getHistoryEntries()).isEmpty();
     }
+
+    @Test
+    void getProjectsToCreate() {
+        final var project = Mockito.mock(Project.class);
+        Mockito.when(project.isActive()).thenReturn(true);
+        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
+        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(project));
+
+        final var response = target.getProjectsToCreate();
+
+        assertThat(response).singleElement().isEqualTo(project);
+    }
+
 }
