@@ -1,0 +1,13 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.webjars:bootstrap:5.3.3'
+    implementation 'org.webjars:popper.js:2.11.7'
+    implementation project(":common")
+    implementation project(":users")
+    implementation project(":tasks")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

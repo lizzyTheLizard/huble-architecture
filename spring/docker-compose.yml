@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  solr:
+    image: 'solr:9.8.0'
+    ports:
+      - "8983:8983"
+    command:
+      - solr-precreate
+      - tasks
+      - /config
+    volumes:
+      - ./integrations/src/main/resources/solr:/config/conf
+      - solr-data:/var/solr
+volumes:
+  solr-data:

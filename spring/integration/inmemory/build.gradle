@@ -1,0 +1,7 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation project(":common")
+    implementation project(":users")
+    implementation project(":tasks")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

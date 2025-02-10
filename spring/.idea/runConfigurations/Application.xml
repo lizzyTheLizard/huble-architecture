@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
     <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
-    <module name="spring.main.main" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="site.gutschi.humble.spring.main.Application" />
+    <module name="spring.integration.application.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="site.gutschi.humble.spring.integration.application.Application" />
     <option name="UPDATE_ACTION_UPDATE_POLICY" value="UpdateClassesAndTriggerFile" />
     <method v="2">
       <option name="Make" enabled="true" />

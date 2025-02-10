@@ -3,14 +3,14 @@ package site.gutschi.humble.spring.users.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
-import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.util.*;
 
 @Getter
 public class Project {
-    private final UserApi userApi;
+    private final CurrentUserApi currentUserApi;
     private final TimeApi timeApi;
     private final String key;
     private final Collection<Integer> estimations = List.of(1, 3, 5);
@@ -21,8 +21,8 @@ public class Project {
     private boolean active;
 
     @Builder
-    public Project(UserApi userApi, TimeApi timeApi, String key, String name, boolean active, @Singular Collection<ProjectRole> projectRoles, @Singular Collection<ProjectHistoryEntry> historyEntries) {
-        this.userApi = userApi;
+    public Project(CurrentUserApi currentUserApi, TimeApi timeApi, String key, String name, boolean active, @Singular Collection<ProjectRole> projectRoles, @Singular Collection<ProjectHistoryEntry> historyEntries) {
+        this.currentUserApi = currentUserApi;
         this.timeApi = timeApi;
         this.key = key;
         this.name = name;
@@ -34,7 +34,7 @@ public class Project {
     public void setName(String name) {
         if (name.equals(this.name)) return;
         final var historyEntry = ProjectHistoryEntry.builder()
-                .user(userApi.currentEmail())
+                .user(currentUserApi.currentEmail())
                 .timestamp(timeApi.now())
                 .type(ProjectHistoryType.NAME_CHANGED)
                 .oldValue(this.name)
@@ -47,7 +47,7 @@ public class Project {
     public void setActive(boolean active) {
         if (active == this.active) return;
         final var historyEntry = ProjectHistoryEntry.builder()
-                .user(userApi.currentEmail())
+                .user(currentUserApi.currentEmail())
                 .timestamp(timeApi.now())
                 .type(ProjectHistoryType.ACTIVATE_CHANGED)
                 .oldValue(String.valueOf(this.active))
@@ -64,7 +64,7 @@ public class Project {
                 .findFirst();
         if (existingRole.isEmpty()) {
             final var historyEntry = ProjectHistoryEntry.builder()
-                    .user(userApi.currentEmail())
+                    .user(currentUserApi.currentEmail())
                     .timestamp(timeApi.now())
                     .type(ProjectHistoryType.USER_ADDED)
                     .affectedUser(user.getEmail())
@@ -79,7 +79,7 @@ public class Project {
         projectRoles.add(new ProjectRole(user, type));
         if (type == existingRole.get().type()) return;
         final var historyEntryBuilder = ProjectHistoryEntry.builder()
-                .user(userApi.currentEmail())
+                .user(currentUserApi.currentEmail())
                 .timestamp(timeApi.now())
                 .affectedUser(user.getEmail())
                 .type(ProjectHistoryType.USER_ROLE_CHANGED)
@@ -97,7 +97,7 @@ public class Project {
         }
         projectRoles.remove(existingRole.get());
         final var historyEntryBuilder = ProjectHistoryEntry.builder()
-                .user(userApi.currentEmail())
+                .user(currentUserApi.currentEmail())
                 .timestamp(timeApi.now())
                 .affectedUser(user.getEmail())
                 .type(ProjectHistoryType.USER_REMOVED)

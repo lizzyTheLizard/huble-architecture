@@ -4,14 +4,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
-import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.util.*;
 
 @Slf4j
 public class Task {
-    private final UserApi userApi;
+    private final CurrentUserApi currentUserApi;
     private final TimeApi timeApi;
     private final int id;
     @Getter
@@ -32,10 +32,10 @@ public class Task {
     private boolean deleted;
 
     @Builder
-    public Task(UserApi userApi, TimeApi timeApi, int id, String projectKey, String creatorEmail, TaskStatus status,
+    public Task(CurrentUserApi currentUserApi, TimeApi timeApi, int id, String projectKey, String creatorEmail, TaskStatus status,
                 String title, String description, String assigneeEmail, Integer estimation, boolean deleted,
                 @Singular Collection<Comment> comments, @Singular Collection<TaskHistoryEntry> historyEntries) {
-        this.userApi = userApi;
+        this.currentUserApi = currentUserApi;
         this.timeApi = timeApi;
         this.id = id;
         this.projectKey = projectKey;
@@ -132,7 +132,7 @@ public class Task {
     }
 
     public void addComment(String text) {
-        final var user = userApi.currentEmail();
+        final var user = currentUserApi.currentEmail();
         final var time = timeApi.now();
         final var historyEntry = historyBuilder()
                 .timestamp(time)
@@ -154,6 +154,6 @@ public class Task {
     }
 
     private TaskHistoryEntry.TaskHistoryEntryBuilder historyBuilder() {
-        return TaskHistoryEntry.builder().user(userApi.currentEmail()).timestamp(timeApi.now());
+        return TaskHistoryEntry.builder().user(currentUserApi.currentEmail()).timestamp(timeApi.now());
     }
 }

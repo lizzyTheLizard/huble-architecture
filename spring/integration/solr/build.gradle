@@ -1,0 +1,9 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.apache.solr:solr-solrj:9.8.0'
+    implementation project(":common")
+    implementation project(":users")
+    implementation project(":tasks")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.testcontainers:testcontainers"
+}

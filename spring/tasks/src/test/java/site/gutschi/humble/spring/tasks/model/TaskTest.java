@@ -1,8 +1,8 @@
 package site.gutschi.humble.spring.tasks.model;
 
 import org.junit.jupiter.api.Test;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.api.TimeApi;
-import site.gutschi.humble.spring.common.api.UserApi;
 
 import java.time.Instant;
 
@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskTest {
     private static final String USER = "TestUser";
-    private static final UserApi USER_API = new UserApi() {
+    private static final CurrentUserApi USER_API = new CurrentUserApi() {
         @Override
         public String currentEmail() {
             return USER;
@@ -27,7 +27,7 @@ class TaskTest {
 
     private static Task createTask() {
         final var task = Task.builder()
-                .userApi(USER_API)
+                .currentUserApi(USER_API)
                 .timeApi(TIME_API)
                 .id(1)
                 .status(TaskStatus.BACKLOG)

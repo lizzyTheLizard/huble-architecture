@@ -1,6 +1,10 @@
-rootProject.name = 'spring'
-include("common")
-include("tasks")
-include("users")
-include("main")
+rootProject.name = name
+include "common"
+include "tasks"
+include "users"
+include "integration:inmemory"
+include "integration:solr"
+include "integration:inmemory"
+include "integration:ui"
+include "integration:application"
 

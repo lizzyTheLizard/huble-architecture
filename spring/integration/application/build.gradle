@@ -1,0 +1,23 @@
+plugins {
+    id 'org.springframework.boot' version "${springBootVersion}"
+}
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation project(":common:")
+    implementation project(":tasks")
+    implementation project(":users")
+    implementation project(":integration:inmemory")
+    implementation project(":integration:ui")
+    implementation project(":integration:solr")
+    developmentOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.testcontainers:testcontainers"
+}
