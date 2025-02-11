@@ -34,6 +34,7 @@ public class ProjectController {
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
         model.addAttribute("manageable", response.manageable());
+        model.addAttribute("currentProject", response.project());
         return "project";
     }
 
@@ -45,6 +46,7 @@ public class ProjectController {
         }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
+        model.addAttribute("currentProject", response.project());
         return "editProject";
     }
 
@@ -69,6 +71,7 @@ public class ProjectController {
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
         model.addAttribute("roles", ProjectRoleType.values());
+        model.addAttribute("currentProject", response.project());
         return "assignUser";
     }
 

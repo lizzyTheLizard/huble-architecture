@@ -1,6 +1,8 @@
 package site.gutschi.humble.spring.users.model;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 
@@ -10,21 +12,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ProjectTest {
     private static final String USER = "TestUser";
-    private static final CurrentUserApi USER_API = new CurrentUserApi() {
-        @Override
-        public String currentEmail() {
-            return USER;
-        }
-
-        @Override
-        public boolean isSystemAdmin() {
-            return false;
-        }
-    };
-
+    private static final CurrentUserApi USER_API = Mockito.mock(CurrentUserApi.class);
     private static final Instant NOW = Instant.now();
 
-    public ProjectTest() {
+    @BeforeEach
+    void setUp() {
+        Mockito.when(USER_API.currentEmail()).thenReturn(USER);
+        Mockito.when(USER_API.isSystemAdmin()).thenReturn(false);
         TimeHelper.setNow(NOW);
     }
 

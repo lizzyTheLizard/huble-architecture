@@ -1,6 +1,8 @@
 package site.gutschi.humble.spring.tasks.model;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 
@@ -10,23 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskTest {
     private static final String USER = "TestUser";
-    private static final CurrentUserApi USER_API = new CurrentUserApi() {
-        @Override
-        public String currentEmail() {
-            return USER;
-        }
-
-        @Override
-        public boolean isSystemAdmin() {
-            return false;
-        }
-    };
-
+    private static final CurrentUserApi USER_API = Mockito.mock(CurrentUserApi.class);
     private static final Instant NOW = Instant.now();
-
-    public TaskTest() {
-        TimeHelper.setNow(NOW);
-    }
 
     private static Task createTask() {
         final var task = Task.builder()
@@ -38,6 +25,13 @@ class TaskTest {
         task.setAssigneeEmail("Old Assignee");
         task.setStatus(TaskStatus.BACKLOG);
         return task;
+    }
+
+    @BeforeEach
+    void setUp() {
+        Mockito.when(USER_API.currentEmail()).thenReturn(USER);
+        Mockito.when(USER_API.isSystemAdmin()).thenReturn(false);
+        TimeHelper.setNow(NOW);
     }
 
     @Test

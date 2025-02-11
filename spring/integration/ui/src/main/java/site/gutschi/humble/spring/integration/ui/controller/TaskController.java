@@ -28,6 +28,7 @@ public class TaskController {
         model.addAttribute("editable", response.editable());
         model.addAttribute("deletable", response.deletable());
         model.addAttribute("users", response.project().getProjectUsers());
+        model.addAttribute("currentProject", response.project());
         return "task";
     }
 
@@ -38,6 +39,7 @@ public class TaskController {
             throw new EditTaskNotAllowedException(response.project().getKey());
         }
         model.addAttribute("task", response.task());
+        model.addAttribute("currentProject", response.project());
         return "deleteTask";
     }
 
@@ -66,6 +68,7 @@ public class TaskController {
         model.addAttribute("states", TaskStatus.values());
         model.addAttribute("estimations", response.project().getEstimations());
         model.addAttribute("users", response.project().getProjectUsers());
+        model.addAttribute("currentProject", response.project());
         return "editTask";
     }
 

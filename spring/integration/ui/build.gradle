@@ -10,4 +10,6 @@ dependencies {
     implementation project(":users")
     implementation project(":tasks")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation project(":integration:inmemory")
 }
