@@ -23,8 +23,6 @@
         <tbody>
         <tr th:each="project : ${projects}">
             <th scope="row">
-                <!-- TODO: Create project view, then delete this comment and suppression -->
-                <!--suppress HtmlUnknownTarget -->
                 <a href="project.html" th:href="'projects/' + ${project.getKey()}" th:text="${project.getKey()}">PRO</a>
             </th>
             <td th:text="${project.getName()}">Test Project</td>
