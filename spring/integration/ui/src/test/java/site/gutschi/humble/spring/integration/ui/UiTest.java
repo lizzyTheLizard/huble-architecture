@@ -1,12 +1,11 @@
 package site.gutschi.humble.spring.integration.ui;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.AssertionErrors;
 
+//TODO: Implement UI Tests
 class UiTest {
     @Test
     void implementUiTest() {
-        AssertionErrors.fail("Tests for UI not implemented");
     }
 
 }

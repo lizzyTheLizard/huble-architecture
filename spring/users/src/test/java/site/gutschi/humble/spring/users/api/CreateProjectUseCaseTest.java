@@ -1,15 +1,17 @@
 package site.gutschi.humble.spring.users.api;
 
 import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.users.TestApplication;
 import site.gutschi.humble.spring.users.model.*;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
+import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.Optional;
 
@@ -21,17 +23,33 @@ class CreateProjectUseCaseTest {
     @Autowired
     private CreateProjectUseCase target;
 
+    @Mock
+    private User currentUser;
+
+    @Mock
+    private Project testProject;
+
     @MockitoBean
     private CurrentUserApi currentUserApi;
 
     @MockitoBean
     private ProjectRepository projectRepository;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setup() {
+        Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
+        Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.empty());
+        Mockito.when(userRepository.findByMail(currentUser.getEmail())).thenReturn(Optional.of(currentUser));
+        Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
+        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+    }
+
     @Test
     void createExistingProject() {
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(TestApplication.CURRENT_USER.getEmail());
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
-        Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.of(Mockito.mock(Project.class)));
+        Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.of(testProject));
         final var request = new CreateProjectRequest("Test Project", "PRO");
 
         assertThatExceptionOfType(KeyNotUniqueException.class).isThrownBy(() -> target.createProject(request));
@@ -39,9 +57,7 @@ class CreateProjectUseCaseTest {
 
     @Test
     void createProjectWithoutSystemAdmin() {
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(TestApplication.CURRENT_USER.getEmail());
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-        Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.empty());
         final var request = new CreateProjectRequest("Test Project", "PRO");
 
         assertThatExceptionOfType(CreateProjectNotAllowedException.class).isThrownBy(() -> target.createProject(request));
@@ -49,9 +65,6 @@ class CreateProjectUseCaseTest {
 
     @Test
     void createProject() {
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(TestApplication.CURRENT_USER.getEmail());
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
-        Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.empty());
         final var request = new CreateProjectRequest("Test Project", "PRO");
 
         final var response = target.createProject(request);
@@ -66,13 +79,13 @@ class CreateProjectUseCaseTest {
     }
 
     private Condition<ProjectRole> adminRole() {
-        final var isUser = new Condition<ProjectRole>(p -> p.user().equals(TestApplication.CURRENT_USER), "user " + TestApplication.CURRENT_USER.getEmail());
+        final var isUser = new Condition<ProjectRole>(p -> p.user().equals(currentUser), "user " + currentUser.getEmail());
         final var isAdmin = new Condition<ProjectRole>(p -> p.type().equals(ProjectRoleType.ADMIN), "type admin");
         return allOf(isUser, isAdmin);
     }
 
     private Condition<ProjectHistoryEntry> created() {
-        final var isUser = new Condition<ProjectHistoryEntry>(p -> p.user().equals(TestApplication.CURRENT_USER.getEmail()), "user " + TestApplication.CURRENT_USER.getEmail());
+        final var isUser = new Condition<ProjectHistoryEntry>(p -> p.user().equals(currentUser.getEmail()), "user " + currentUser.getEmail());
         final var isCreated = new Condition<ProjectHistoryEntry>(p -> p.type().equals(ProjectHistoryType.CREATED), "type created");
         return allOf(isUser, isCreated);
     }

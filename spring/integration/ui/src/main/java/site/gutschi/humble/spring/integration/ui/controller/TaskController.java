@@ -43,9 +43,10 @@ public class TaskController {
 
     @PostMapping("/tasks/{key}/delete")
     public String deleteTask(@PathVariable("key") String key) {
+        final var response = getTasksUseCase.getTaskByKey(key);
         final var deleteTaskRequest = new DeleteTaskRequest(key);
         editTaskUseCase.delete(deleteTaskRequest);
-        return "redirect:/tasks/";
+        return "redirect:/projects/" + response.project().getKey();
     }
 
     @PostMapping("/tasks/{key}/comment")
@@ -70,13 +71,15 @@ public class TaskController {
 
     @PostMapping("/tasks/{key}/edit")
     public String editTask(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
+        final var assigneeEmail = body.get("assigneeEmail").isEmpty() ? null : body.get("assigneeEmail");
+        final var estimation = body.get("estimation").isEmpty() ? null : Integer.parseInt(body.get("estimation"));
         final var request = EditTaskRequest.builder()
                 .taskKey(key)
                 .title(body.get("title"))
                 .description(body.get("description"))
-                .estimation(Integer.parseInt(body.get("estimation")))
+                .estimation(estimation)
                 .status(TaskStatus.valueOf(body.get("status")))
-                .assignee(body.get("assigneeEmail"))
+                .assignee(assigneeEmail)
                 .build();
         editTaskUseCase.edit(request);
         return "redirect:/tasks/" + request.taskKey();
@@ -111,7 +114,7 @@ public class TaskController {
 
     @PostMapping("/tasks/create")
     public String createTask(@RequestParam Map<String, String> body) {
-        final var request = new CreateTaskRequest(body.get("projectKey"), body.get("title"), body.get("description"));
+        final var request = new CreateTaskRequest(body.get("project"), body.get("title"), body.get("description"));
         final var createdTask = createTaskUseCase.create(request);
         return "redirect:/tasks/" + createdTask.getKey();
     }

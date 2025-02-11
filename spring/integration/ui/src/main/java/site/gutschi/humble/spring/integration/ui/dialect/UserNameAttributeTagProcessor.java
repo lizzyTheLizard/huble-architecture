@@ -31,6 +31,10 @@ public class UserNameAttributeTagProcessor extends AbstractAttributeTagProcessor
         final var parser = StandardExpressions.getExpressionParser(configuration);
         final var expression = parser.parseExpression(context, attributeValue);
         final var user = (User) expression.execute(context);
+        if (user == null) {
+            structureHandler.setBody("", false);
+            return;
+        }
         final var text = user.getName() + " (" + user.getEmail() + ")";
         final var escapedText = HtmlEscape.escapeHtml5(text);
         structureHandler.setBody(escapedText, false);

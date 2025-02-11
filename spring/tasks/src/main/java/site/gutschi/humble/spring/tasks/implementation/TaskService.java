@@ -11,7 +11,6 @@ import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
-import site.gutschi.humble.spring.users.api.ProjectNotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.Collection;
@@ -32,8 +31,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void edit(EditTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey())
-                .orElseThrow(() -> new ProjectNotFoundException(existingTask.getProjectKey()));
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanEditTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -51,8 +49,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void comment(CommentTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey())
-                .orElseThrow(() -> new ProjectNotFoundException(existingTask.getProjectKey()));
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
         existingTask.addComment(request.comment());
@@ -65,14 +62,13 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void delete(DeleteTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey())
-                .orElseThrow(() -> new ProjectNotFoundException(existingTask.getProjectKey()));
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanDeleteTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
         existingTask.setDeleted();
         taskRepository.save(existingTask);
-        searchCaller.informUpdatedTasks(existingTask);
+        searchCaller.informDeletedTasks(existingTask);
         log.info("Task {} deleted", existingTask.getKey());
     }
 
@@ -80,8 +76,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public GetTaskResponse getTaskByKey(String taskKey) {
         final var existingTask = taskRepository.findByKey(taskKey)
                 .orElseThrow(() -> new TaskNotFoundException(taskKey));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey())
-                .orElseThrow(() -> new ProjectNotFoundException(existingTask.getProjectKey()));
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         notDeletedPolicy.ensureNotDeleted(existingTask);
         final var editable = canAccessPolicy.canEditTasksInProject(project);
         final var deletable = canAccessPolicy.canDeleteTasksInProject(project);
@@ -98,8 +93,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
 
     @Override
     public Task create(CreateTaskRequest request) {
-        final var project = getProjectUseCase.getProject(request.projectKey())
-                .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
+        final var project = getProjectUseCase.getProject(request.projectKey());
         canAccessPolicy.ensureCanEditTasksInProject(project);
         projectActivePolicy.ensureProjectIsActive(project);
         final var task = Task.builder()

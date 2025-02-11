@@ -10,10 +10,7 @@ import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.Collection;
-import java.util.Optional;
 
-//TODO: Remove suppress warnings if all UseCases are used from UI
-@SuppressWarnings("unused")
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -21,7 +18,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final CurrentUserApi currentUserApi;
-    private final AllowedToAccessPolicy allowedToAccessPolicy;
+    private final CanAccessProjectPolicy canAccessProjectPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
     private final CanCreateProjectPolicy canCreateProjectPolicy;
 
@@ -31,7 +28,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
                 .orElseThrow(() -> new UserNotFoundException(request.userEmail()));
         final var project = projectRepository.findByKey(request.projectKey())
                 .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
-        allowedToAccessPolicy.ensureCanManage(project);
+        canAccessProjectPolicy.ensureCanManage(project);
         project.setUserRole(user, request.type());
         projectRepository.save(project);
         log.info("User {} assigned to project {}", user.getEmail(), project.getKey());
@@ -52,7 +49,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     public void editProject(EditProjectRequest request) {
         final var project = projectRepository.findByKey(request.projectKey())
                 .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
-        allowedToAccessPolicy.ensureCanManage(project);
+        canAccessProjectPolicy.ensureCanManage(project);
         project.setName(request.name());
         project.setActive(request.active());
         project.setEstimations(request.estimations());
@@ -61,15 +58,17 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     }
 
     @Override
-    public Optional<Project> getProject(String projectKey) {
-        return projectRepository.findByKey(projectKey)
-                .filter(allowedToAccessPolicy::canRead);
+    public Project getProject(String projectKey) {
+        final var project = projectRepository.findByKey(projectKey)
+                .orElseThrow(() -> new ProjectNotFoundException(projectKey));
+        canAccessProjectPolicy.ensureCanRead(project);
+        return project;
     }
 
     @Override
     public Collection<Project> getAllProjects() {
         return projectRepository.findAll().stream()
-                .filter(allowedToAccessPolicy::canRead)
+                .filter(canAccessProjectPolicy::canRead)
                 .toList();
     }
 }

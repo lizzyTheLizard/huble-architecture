@@ -87,6 +87,21 @@ public class SolrCaller implements SearchCaller {
     }
 
     @Override
+    public void informDeletedTasks(Task... tasks) {
+        log.debug("Delete {} tasks", tasks.length);
+        if (tasks.length == 0) return;
+        try (var client = createClient()) {
+            for (var task : tasks) {
+                client.deleteByQuery("key_s:" + task.getKey());
+            }
+            client.commit();
+            log.info("Deleted {} tasks", tasks.length);
+        } catch (Exception e) {
+            log.warn("Could not update tasks. Index needs to be recreated", e);
+        }
+    }
+
+    @Override
     public void clear() {
         log.debug("Clear index");
         try (var client = createClient()) {

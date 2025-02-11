@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="en" th:lang="${language}?: 'en'" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" th:lang="${language}?: 'en'" xmlns:gs="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{ index.html :: common_header(~{::title},~{::additionalLink},~{}) }">
     <title th:text="'Edit ' + ${task.key} + ': ' + ${task.title}">Edit PRO-13: Create a new Task View</title>
     <link href="../static/css/style.css" rel="stylesheet">
@@ -34,11 +35,11 @@
             <div class="col">
                 <div class="form-floating">
                     <select class="form-select" id="assigneeEmail" name="assigneeEmail">
-                        <option th:selected="${task.assigneeEmail.isEmpty()}">None</option>
-                        <option selected
+                        <option th:selected="${task.assigneeEmail.isEmpty()}" value="">None</option>
+                        <option gs:username="${user}"
+                                selected
                                 th:each="user : ${users.values()}"
                                 th:selected="${user.email} == ${task.assigneeEmail.orElse(null)}"
-                                th:username="${user}"
                                 th:value="${user.email}">creator@example.com
                         </option>
                         <option th:remove="all">dev@example.com</option>
@@ -50,7 +51,7 @@
             <div class="col">
                 <div class="form-floating">
                     <select class="form-select" id="estimation" name="estimation">
-                        <option th:selected="${task.estimation.isEmpty()}">None</option>
+                        <option th:selected="${task.estimation.isEmpty()}" value="">None</option>
                         <option selected
                                 th:each="estimation : ${estimations}"
                                 th:selected="${estimation} == ${task.estimation.orElse(null)}"

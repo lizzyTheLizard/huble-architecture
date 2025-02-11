@@ -7,5 +7,7 @@ public interface SearchCaller {
 
     void informUpdatedTasks(Task... tasks);
 
+    void informDeletedTasks(Task... tasks);
+
     void clear();
 }

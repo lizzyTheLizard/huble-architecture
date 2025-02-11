@@ -1,17 +1,20 @@
 package site.gutschi.humble.spring.tasks.api;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.tasks.TestApplication;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
+import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
-import site.gutschi.humble.spring.users.api.ProjectNotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,25 +28,40 @@ class CreateTaskTest {
     @Autowired
     private CreateTaskUseCase target;
 
+    @Mock
+    private User currentUser;
+
+    @Mock
+    private Project testProject;
+
+    @MockitoBean
+    private CurrentUserApi currentUserApi;
+
     @MockitoBean
     private TaskRepository taskRepository;
 
     @MockitoBean
     private GetProjectUseCase getProjectUseCase;
 
-    @Test
-    void createTaskNonExistingProject() {
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.empty());
+    @MockitoBean
+    @SuppressWarnings("unused") // Used indirectly
+    private SearchCaller searchCaller;
 
-        CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
-        assertThatExceptionOfType(ProjectNotFoundException.class).isThrownBy(() -> target.create(request));
+    @BeforeEach
+    void setup() {
+        Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
+        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
+        Mockito.when(testProject.isActive()).thenReturn(true);
+        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
+        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(testProject));
+        Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
+        Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
+        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
     }
 
     @Test
     void createTaskReadAccessOnly() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.STAKEHOLDER));
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
+        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.STAKEHOLDER));
 
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
         assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.create(request));
@@ -51,10 +69,7 @@ class CreateTaskTest {
 
     @Test
     void createTaskProjectNotActive() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.isActive()).thenReturn(false);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
+        Mockito.when(testProject.isActive()).thenReturn(false);
 
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
         assertThatExceptionOfType(EditTaskNotAllowedException.class).isThrownBy(() -> target.create(request));
@@ -62,17 +77,11 @@ class CreateTaskTest {
 
     @Test
     void createTask() {
-        Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.isActive()).thenReturn(true);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(Optional.of(project));
-
         CreateTaskRequest request = new CreateTaskRequest("PRO", "title", "description");
         final var createdTask = target.create(request);
 
         Mockito.verify(taskRepository).save(createdTask);
-        assertThat(createdTask.getCreatorEmail()).isEqualTo(TestApplication.CURRENT_USER.getEmail());
+        assertThat(createdTask.getCreatorEmail()).isEqualTo(currentUser.getEmail());
         assertThat(createdTask.getKey()).isEqualTo("PRO-42");
         assertThat(createdTask.getProjectKey()).isEqualTo("PRO");
         assertThat(createdTask.getTitle()).isEqualTo("title");
@@ -86,14 +95,9 @@ class CreateTaskTest {
 
     @Test
     void getProjectsToCreate() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.isActive()).thenReturn(true);
-        Mockito.when(project.getRole(TestApplication.CURRENT_USER.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(project));
-
         final var response = target.getProjectsToCreate();
 
-        assertThat(response).singleElement().isEqualTo(project);
+        assertThat(response).singleElement().isEqualTo(testProject);
     }
 
 }

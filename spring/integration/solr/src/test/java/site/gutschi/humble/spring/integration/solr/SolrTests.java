@@ -67,6 +67,22 @@ public class SolrTests {
         final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
         final var target = new SolrCaller(container.getConfiguration());
         target.informUpdatedTasks(task);
+        target.informDeletedTasks(task);
+
+        final var response = target.findTasks(request);
+
+        assertThat(response.total()).isEqualTo(0);
+        assertThat(response.tasks()).isEmpty();
+    }
+
+    @Test
+    void clear() {
+        final var project = Mockito.mock(Project.class);
+        Mockito.when(project.getKey()).thenReturn("PRO");
+        final var task = createTask(1);
+        final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
+        final var target = new SolrCaller(container.getConfiguration());
+        target.informUpdatedTasks(task);
         target.clear();
 
         final var response = target.findTasks(request);

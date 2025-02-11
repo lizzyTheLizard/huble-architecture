@@ -7,16 +7,12 @@ import site.gutschi.humble.spring.users.api.*;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
-import java.util.Optional;
-
-//TODO: Remove suppress warnings if all UseCases are used from UI
-@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService implements CreateUserUseCase, EditUserUseCase, GetUserUseCase {
     private final UserRepository userRepository;
-    private final AllowedToAccessPolicy allowedToAccessPolicy;
+    private final CanAccessUserPolicy canAccessUserPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
 
     @Override
@@ -26,6 +22,7 @@ public class UserService implements CreateUserUseCase, EditUserUseCase, GetUserU
                 .name(request.name())
                 .email(request.email())
                 .build();
+        canAccessUserPolicy.ensureCanCreate(user);
         userRepository.save(user);
         log.info("User {} created", user.getEmail());
         return user;
@@ -35,15 +32,17 @@ public class UserService implements CreateUserUseCase, EditUserUseCase, GetUserU
     public void editUser(EditUserRequest request) {
         final var user = userRepository.findByMail(request.email())
                 .orElseThrow(() -> new UserNotFoundException(request.email()));
-        allowedToAccessPolicy.ensureCanEdit(user);
+        canAccessUserPolicy.ensureCanEdit(user);
         user.setName(request.name());
         userRepository.save(user);
         log.info("User {} edited", user.getEmail());
     }
 
     @Override
-    public Optional<User> getUser(String userEmail) {
-        return userRepository.findByMail(userEmail)
-                .filter(allowedToAccessPolicy::canRead);
+    public User getUser(String userEmail) {
+        final var user = userRepository.findByMail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
+        canAccessUserPolicy.ensureCanRead(user);
+        return user;
     }
 }

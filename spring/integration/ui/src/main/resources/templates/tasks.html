@@ -28,7 +28,10 @@
                 <a href="tasks/PRO-13" th:href="'tasks/' + ${task.key()}" th:text="${task.key()}">PRO-13</a>
             </th>
             <td th:text="${task.title()}">Create a new view</td>
-            <td gs:username="${users.get(task.assigneeEmailOrNull())}" th:if="${task.assigneeEmailOrNull()}">Hans
+
+
+            <td gs:username="${users.get(task.assigneeEmailOrNull())}" th:if="${task.assigneeEmailOrNull() != null}">
+                Hans
                 (test@example.com)
             </td>
             <td th:text="${task.status()}">FUNNEL</td>

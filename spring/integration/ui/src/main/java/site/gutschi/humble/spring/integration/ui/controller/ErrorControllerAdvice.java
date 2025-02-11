@@ -57,8 +57,15 @@ public class ErrorControllerAdvice {
 
     @ExceptionHandler({ProjectNotVisibleException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotVisibleException(ProjectNotVisibleException exception, Model model) {
+    public String handleProjectNotVisibleException(ProjectNotVisibleException exception, Model model) {
         final var notFoundException = new ProjectNotFoundException(exception.getProjectKey());
+        return handleNotFoundException(notFoundException, model);
+    }
+
+    @ExceptionHandler({UserNotVisibleException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserNotVisibleException(UserNotVisibleException exception, Model model) {
+        final var notFoundException = new UserNotFoundException(exception.getUserEmail());
         return handleNotFoundException(notFoundException, model);
     }
 

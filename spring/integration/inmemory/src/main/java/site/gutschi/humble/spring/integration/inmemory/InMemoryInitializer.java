@@ -61,6 +61,9 @@ public class InMemoryInitializer {
                 .name("Project PRO")
                 .projectRole(new ProjectRole(user1, ProjectRoleType.ADMIN))
                 .projectRole(new ProjectRole(user2, ProjectRoleType.DEVELOPER))
+                .estimation(1)
+                .estimation(3)
+                .estimation(5)
                 .currentUserApi(currentUserApi)
                 .build();
         final var tasks = IntStream.range(1, 20)
