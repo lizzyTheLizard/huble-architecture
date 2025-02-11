@@ -15,21 +15,30 @@ import java.util.Map;
 @SuppressWarnings("SameReturnValue")
 public class UserController {
 
-    @GetMapping("/users/create")
-    public String createUserView(Model model) {
-        //TODO: Create User
+    @GetMapping("/users/current")
+    public String viewUser(Model model) {
+        //TODO: View User
         model.addAttribute("status", HttpStatus.NOT_FOUND.value());
         model.addAttribute("error", HttpStatus.NOT_FOUND.getReasonPhrase());
-        model.addAttribute("message", "Create user not yet implemented");
+        model.addAttribute("message", "View user not yet implemented");
         return "error";
     }
 
-    @PostMapping("/users/create")
-    public String createTask(@RequestParam Map<String, String> body, Model model) {
-        //TODO: Create User
+    @GetMapping("/users/current/edit")
+    public String createUserView(Model model) {
+        //TODO: Edit User
         model.addAttribute("status", HttpStatus.NOT_FOUND.value());
         model.addAttribute("error", HttpStatus.NOT_FOUND.getReasonPhrase());
-        model.addAttribute("message", "Create user not yet implemented");
+        model.addAttribute("message", "Edit user not yet implemented");
+        return "error";
+    }
+
+    @PostMapping("/users/current/edit")
+    public String createTask(@RequestParam Map<String, String> body, Model model) {
+        //TODO: Edit User
+        model.addAttribute("status", HttpStatus.NOT_FOUND.value());
+        model.addAttribute("error", HttpStatus.NOT_FOUND.getReasonPhrase());
+        model.addAttribute("message", "Edit user not yet implemented");
         return "error";
     }
 }
