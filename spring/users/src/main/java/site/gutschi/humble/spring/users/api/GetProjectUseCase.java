@@ -5,7 +5,7 @@ import site.gutschi.humble.spring.users.model.Project;
 import java.util.Collection;
 
 public interface GetProjectUseCase {
-    Project getProject(String projectKey);
+    GetProjectResponse getProject(String projectKey);
 
     Collection<Project> getAllProjects();
 }

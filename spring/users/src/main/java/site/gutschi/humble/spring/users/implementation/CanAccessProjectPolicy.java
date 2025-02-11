@@ -14,16 +14,14 @@ public class CanAccessProjectPolicy {
     private final CurrentUserApi currentUserApi;
 
     public void ensureCanManage(Project project) {
-        if (currentUserApi.isSystemAdmin()) return;
         final var currentUser = currentUserApi.currentEmail();
-        final var projectRoleType = getProjectRoleType(currentUser, project);
-        if (projectRoleType.canManage()) return;
-        throw new ManageProjectNotAllowedException(project.getKey());
+        if (!canRead(project)) throw new ProjectNotVisibleException(currentUser, project.getKey());
+        if (!canManage(project)) throw new ManageProjectNotAllowedException(project.getKey());
     }
 
     public void ensureCanRead(Project project) {
-        if (canRead(project)) return;
         final var currentUser = currentUserApi.currentEmail();
+        if (canRead(project)) return;
         throw new ProjectNotVisibleException(currentUser, project.getKey());
     }
 
@@ -35,8 +33,16 @@ public class CanAccessProjectPolicy {
                 .orElse(false);
     }
 
+    public boolean canManage(Project project) {
+        if (currentUserApi.isSystemAdmin()) return true;
+        final var currentUser = currentUserApi.currentEmail();
+        final var projectRoleType = getProjectRoleType(currentUser, project);
+        return projectRoleType.canManage();
+    }
+
     private ProjectRoleType getProjectRoleType(String currentUser, Project project) {
         return project.getRole(currentUser)
                 .orElseThrow(() -> new ProjectNotVisibleException(currentUser, project.getKey()));
     }
+
 }

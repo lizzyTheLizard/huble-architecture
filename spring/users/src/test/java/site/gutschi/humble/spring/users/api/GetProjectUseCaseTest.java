@@ -86,7 +86,7 @@ class GetProjectUseCaseTest {
         final var result = target.getProject(testProject.getKey());
 
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(testProject);
+        assertThat(result).isEqualTo(new GetProjectResponse(testProject, true));
     }
 
     @Test
@@ -94,7 +94,7 @@ class GetProjectUseCaseTest {
         final var result = target.getProject(testProject.getKey());
 
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(testProject);
+        assertThat(result).isEqualTo(new GetProjectResponse(testProject, false));
     }
 
     @Test

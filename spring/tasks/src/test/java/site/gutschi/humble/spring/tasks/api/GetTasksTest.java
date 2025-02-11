@@ -13,6 +13,7 @@ import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerResponse;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.GetProjectResponse;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
@@ -58,7 +59,8 @@ class GetTasksTest {
         Mockito.when(testProject.getKey()).thenReturn("PRO");
         Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
         Mockito.when(testProject.getProjectRoles()).thenReturn(List.of(new ProjectRole(currentUser, ProjectRoleType.DEVELOPER)));
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
+        final var getProjectResponse = new GetProjectResponse(testProject, true);
+        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
         Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(testProject));
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(existingTask));
         Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");

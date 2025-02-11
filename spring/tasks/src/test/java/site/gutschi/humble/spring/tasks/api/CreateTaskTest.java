@@ -11,6 +11,7 @@ import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.GetProjectResponse;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
@@ -52,7 +53,8 @@ class CreateTaskTest {
         Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
         Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
         Mockito.when(testProject.isActive()).thenReturn(true);
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
+        final var getProjectResponse = new GetProjectResponse(testProject, true);
+        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
         Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(testProject));
         Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
         Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");

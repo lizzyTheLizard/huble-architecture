@@ -21,17 +21,31 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     private final CanAccessProjectPolicy canAccessProjectPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
     private final CanCreateProjectPolicy canCreateProjectPolicy;
+    private final CreateUserUseCase createUserUseCase;
 
     @Override
     public void assignUser(AssignUserRequest request) {
+        final var project = projectRepository.findByKey(request.projectKey())
+                .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
+        canAccessProjectPolicy.ensureCanManage(project);
+        final var createUserRequest = new CreateUserRequest("", request.userEmail());
+        final var user = userRepository.findByMail(request.userEmail())
+                .orElseGet(() -> createUserUseCase.createUser(createUserRequest));
+        project.setUserRole(user, request.type());
+        projectRepository.save(project);
+        log.info("User {} assigned to project {}", user.getEmail(), project.getKey());
+    }
+
+    @Override
+    public void unAssignUser(UnAssignUserRequest request) {
         final var user = userRepository.findByMail(request.userEmail())
                 .orElseThrow(() -> new UserNotFoundException(request.userEmail()));
         final var project = projectRepository.findByKey(request.projectKey())
                 .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
         canAccessProjectPolicy.ensureCanManage(project);
-        project.setUserRole(user, request.type());
+        project.removeUserRole(user);
         projectRepository.save(project);
-        log.info("User {} assigned to project {}", user.getEmail(), project.getKey());
+        log.info("User {} unassigned from project {}", user.getEmail(), project.getKey());
     }
 
     @Override
@@ -58,11 +72,11 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     }
 
     @Override
-    public Project getProject(String projectKey) {
+    public GetProjectResponse getProject(String projectKey) {
         final var project = projectRepository.findByKey(projectKey)
                 .orElseThrow(() -> new ProjectNotFoundException(projectKey));
         canAccessProjectPolicy.ensureCanRead(project);
-        return project;
+        return new GetProjectResponse(project, canAccessProjectPolicy.canManage(project));
     }
 
     @Override

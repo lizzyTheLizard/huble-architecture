@@ -38,7 +38,7 @@ public class TaskController {
             throw new EditTaskNotAllowedException(response.project().getKey());
         }
         model.addAttribute("task", response.task());
-        return "delete";
+        return "deleteTask";
     }
 
     @PostMapping("/tasks/{key}/delete")
@@ -66,7 +66,7 @@ public class TaskController {
         model.addAttribute("states", TaskStatus.values());
         model.addAttribute("estimations", response.project().getEstimations());
         model.addAttribute("users", response.project().getProjectUsers());
-        return "edit";
+        return "editTask";
     }
 
     @PostMapping("/tasks/{key}/edit")
@@ -109,7 +109,7 @@ public class TaskController {
     public String createTaskView(Model model) {
         final var projects = createTaskUseCase.getProjectsToCreate();
         model.addAttribute("projects", projects);
-        return "create";
+        return "createTask";
     }
 
     @PostMapping("/tasks/create")

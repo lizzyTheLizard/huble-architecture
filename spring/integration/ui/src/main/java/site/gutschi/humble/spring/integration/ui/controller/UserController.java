@@ -24,7 +24,7 @@ public class UserController {
         return "error";
     }
 
-    @PostMapping("/tasks/create")
+    @PostMapping("/users/create")
     public String createTask(@RequestParam Map<String, String> body, Model model) {
         //TODO: Create User
         model.addAttribute("status", HttpStatus.NOT_FOUND.value());

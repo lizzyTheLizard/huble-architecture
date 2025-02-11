@@ -31,7 +31,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void edit(EditTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanEditTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -49,7 +49,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void comment(CommentTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
         existingTask.addComment(request.comment());
@@ -62,7 +62,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public void delete(DeleteTaskRequest request) {
         final var existingTask = taskRepository.findByKey(request.taskKey())
                 .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanDeleteTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -76,7 +76,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     public GetTaskResponse getTaskByKey(String taskKey) {
         final var existingTask = taskRepository.findByKey(taskKey)
                 .orElseThrow(() -> new TaskNotFoundException(taskKey));
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         notDeletedPolicy.ensureNotDeleted(existingTask);
         final var editable = canAccessPolicy.canEditTasksInProject(project);
         final var deletable = canAccessPolicy.canDeleteTasksInProject(project);
@@ -93,7 +93,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
 
     @Override
     public Task create(CreateTaskRequest request) {
-        final var project = getProjectUseCase.getProject(request.projectKey());
+        final var project = getProjectUseCase.getProject(request.projectKey()).project();
         canAccessPolicy.ensureCanEditTasksInProject(project);
         projectActivePolicy.ensureProjectIsActive(project);
         final var task = Task.builder()

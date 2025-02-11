@@ -17,6 +17,10 @@ public class CanAccessUserPolicy {
 
     public void ensureCanCreate(User user) {
         if (currentUserApi.isSystemAdmin()) return;
+        final var isProjectAdmin = projectRepository.findAll().stream()
+                .flatMap(p -> p.getRole(currentUserApi.currentEmail()).stream())
+                .anyMatch(ProjectRoleType::canManage);
+        if (isProjectAdmin) return;
         throw new ManageUserNotAllowedException(user.getEmail());
     }
 

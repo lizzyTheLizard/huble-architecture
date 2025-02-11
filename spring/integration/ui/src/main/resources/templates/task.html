@@ -55,36 +55,10 @@
             <p id="status" th:text="${task.status}">FUNNEL</p>
 
             <div class="button-bar">
-                <a class="btn btn-danger" href="delete.html" th:href="@{${task.key} + '/delete'}" th:if="${deletable}">Delete</a>
-                <a class="btn btn-primary" href="edit.html" th:href="@{${task.key} + '/edit'}"
+                <a class="btn btn-danger" href="deleteTask.html" th:href="@{${task.key} + '/delete'}"
+                   th:if="${deletable}">Delete</a>
+                <a class="btn btn-primary" href="editTask.html" th:href="@{${task.key} + '/edit'}"
                    th:if="${editable}">Edit</a>
-            </div>
-            <div class="accordion accordion-flush" id="historyAccordion">
-                <div class="accordion-item">
-                    <div class="accordion-header">
-                        <h5 class="accordion-button collapsed" data-bs-target="#history" data-bs-toggle="collapse">
-                            History
-                        </h5>
-                    </div>
-                    <div class="accordion-collapse collapse" data-bs-parent="#historyAccordion" id="history">
-                        <div class="accordion-body">
-                            <div th:each="entry: ${task.historyEntries}">
-                                <h6>
-                                    <th:block gs:username="${users.get(entry.user)}">Hans (test@example.com)</th:block>
-                                    <th:block th:time="${entry.timestamp()}">01.01.2024 13:34</th:block>
-                                </h6>
-                                <p gs:newLineText="${entry.description()}">Some quick example text to build on the card
-                                    title
-                                    and make up the bulk of the card's content.</p>
-                            </div>
-                            <div th:remove="all">
-                                <h6>Hans (test@example.com) 01.01.2024 13:34</h6>
-                                <p>Some quick example text to build on the card title and make up the bulk of the card's
-                                    content.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

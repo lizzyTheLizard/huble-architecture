@@ -4,4 +4,6 @@ public interface EditProjectUseCase {
     void editProject(EditProjectRequest request);
 
     void assignUser(AssignUserRequest request);
+
+    void unAssignUser(UnAssignUserRequest request);
 }

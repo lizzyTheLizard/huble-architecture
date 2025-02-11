@@ -12,6 +12,7 @@ import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.GetProjectResponse;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
@@ -58,7 +59,8 @@ class EditTaskTest {
         Mockito.when(testProject.isActive()).thenReturn(true);
         Mockito.when(testProject.getKey()).thenReturn("PRO");
         Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.ADMIN));
-        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
+        final var getProjectResponse = new GetProjectResponse(testProject, true);
+        Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(existingTask));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
         Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
