@@ -31,6 +31,7 @@ public class Task {
     private boolean deleted;
 
     @Builder
+    @SuppressWarnings("unused") // Used via builder
     public Task(CurrentUserApi currentUserApi, int id, String projectKey, String creatorEmail, TaskStatus status,
                 String title, String description, String assigneeEmail, Integer estimation, boolean deleted,
                 @Singular Collection<Comment> comments, @Singular Collection<TaskHistoryEntry> historyEntries) {

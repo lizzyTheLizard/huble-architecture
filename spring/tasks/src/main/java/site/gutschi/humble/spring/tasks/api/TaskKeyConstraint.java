@@ -16,6 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = TaskKeyConstraint.TaskKeyValidator.class)
 @Target({METHOD, FIELD, PARAMETER})
 @Retention(RUNTIME)
+@SuppressWarnings("unused") //Methods in annotations used implicitly
 public @interface TaskKeyConstraint {
     String message() default "Invalid task key '${validatedValue}'";
 

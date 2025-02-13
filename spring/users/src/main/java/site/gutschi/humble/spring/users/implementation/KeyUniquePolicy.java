@@ -13,8 +13,8 @@ public class KeyUniquePolicy {
     private final UserRepository userRepository;
 
     public void ensureProjectKeyUnique(String projectKey) {
-        final var exising = projectRepository.findByKey(projectKey);
-        if (exising.isPresent())
+        final var existing = projectRepository.findByKey(projectKey);
+        if (existing.isPresent())
             throw KeyNotUniqueException.projectKeyAlreadyExists(projectKey);
     }
 

@@ -20,4 +20,6 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.testcontainers:testcontainers"
+    // Fix vulnerabilities in testcontainers
+    testImplementation 'org.apache.commons:commons-compress:1.26.0'
 }
