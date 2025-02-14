@@ -10,4 +10,6 @@ dependencies {
     testImplementation "org.testcontainers:testcontainers"
     // Fix vulnerabilities in testcontainers
     testImplementation 'org.apache.commons:commons-compress:1.26.0'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }

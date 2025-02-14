@@ -1,9 +1,13 @@
 package site.gutschi.humble.spring.integration.solr;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.api.FindTasksResponse;
 import site.gutschi.humble.spring.tasks.model.Task;
@@ -15,18 +19,20 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest
+@Testcontainers
 public class SolrTests {
-    static SolrContainer container;
+    @Container
+    static final SolrContainer container = new SolrContainer("solr");
+    @Autowired
+    private SolrCaller target;
 
-    @BeforeAll
-    static void beforeAll() {
-        container = new SolrContainer("solr");
-        container.start();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        container.stop();
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        registry.add("solr.url", () -> String.format("http://%s:%d/solr/%s",
+                container.getHost(),
+                container.getMappedPort(SolrContainer.SOLR_PORT),
+                SolrContainer.COLLECTION_NAME));
     }
 
     @Test
@@ -34,7 +40,6 @@ public class SolrTests {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var request = new SearchCallerRequest("test", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
 
         final var response = target.findTasks(request);
@@ -49,7 +54,6 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
         final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
         target.informUpdatedTasks(task);
 
@@ -65,7 +69,6 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
         final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.informUpdatedTasks(task);
         target.informDeletedTasks(task);
 
@@ -81,7 +84,6 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
         final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.informUpdatedTasks(task);
         target.clear();
 
@@ -97,7 +99,6 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("OTHER");
         final var task = createTask(1);
         final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
         target.informUpdatedTasks(task);
 
@@ -114,7 +115,6 @@ public class SolrTests {
         final var task1 = createTask(1);
         final var task2 = createTask(2);
         final var request = new SearchCallerRequest("STR2", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
@@ -131,7 +131,6 @@ public class SolrTests {
         final var task1 = createTask(1);
         final var task2 = createTask(2);
         final var request = new SearchCallerRequest("STR1", 1, 10, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
@@ -150,7 +149,6 @@ public class SolrTests {
         final var task2 = createTask(2);
         final var request = new SearchCallerRequest("STR1", 1, 1, List.of(project));
         final var request2 = new SearchCallerRequest("STR1", 2, 1, List.of(project));
-        final var target = new SolrCaller(container.getConfiguration());
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
