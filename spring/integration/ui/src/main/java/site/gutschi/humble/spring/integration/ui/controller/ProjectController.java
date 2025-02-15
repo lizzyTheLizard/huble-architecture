@@ -20,6 +20,7 @@ import java.util.Map;
 public class ProjectController {
     private final GetProjectUseCase getProjectUseCase;
     private final EditProjectUseCase editProjectUseCase;
+    private final CreateProjectUseCase createProjectUseCase;
 
     @GetMapping({"/index.html", "/", "/projects"})
     public String showProjectOverview(Model model) {
@@ -68,6 +69,9 @@ public class ProjectController {
     @GetMapping("/projects/{key}/assignUser")
     public String assignUserView(@PathVariable("key") String key, Model model) {
         final var response = getProjectUseCase.getProject(key);
+        if (!response.manageable()) {
+            throw new ManageProjectNotAllowedException(response.project().getKey());
+        }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
         model.addAttribute("roles", ProjectRoleType.values());
@@ -92,5 +96,18 @@ public class ProjectController {
         return "redirect:/projects/" + key;
     }
 
-    //TODO: Create Project
+    @GetMapping("/projects/create")
+    public String createProjectView(Model model) {
+        if (!createProjectUseCase.canCreateProject()) {
+            throw new CreateProjectNotAllowedException();
+        }
+        return "createProject";
+    }
+
+    @PostMapping("/projects/create")
+    public String createProject(@RequestParam Map<String, String> body) {
+        final var request = new CreateProjectRequest(body.get("key"), body.get("name"));
+        final var project = createProjectUseCase.createProject(request);
+        return "redirect:/projects/" + project.getKey();
+    }
 }

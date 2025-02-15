@@ -50,7 +50,7 @@ class CreateProjectUseCaseTest {
     @Test
     void createExistingProject() {
         Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.of(testProject));
-        final var request = new CreateProjectRequest("Test Project", "PRO");
+        final var request = new CreateProjectRequest("PRO", "Test Project");
 
         assertThatExceptionOfType(KeyNotUniqueException.class).isThrownBy(() -> target.createProject(request));
     }
@@ -58,14 +58,14 @@ class CreateProjectUseCaseTest {
     @Test
     void createProjectWithoutSystemAdmin() {
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-        final var request = new CreateProjectRequest("Test Project", "PRO");
+        final var request = new CreateProjectRequest("PRO", "Test Project");
 
         assertThatExceptionOfType(CreateProjectNotAllowedException.class).isThrownBy(() -> target.createProject(request));
     }
 
     @Test
     void createProject() {
-        final var request = new CreateProjectRequest("Test Project", "PRO");
+        final var request = new CreateProjectRequest("PRO", "Test Project");
 
         final var response = target.createProject(request);
 

@@ -4,14 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.api.CreateTaskUseCase;
+import site.gutschi.humble.spring.users.api.CreateProjectUseCase;
 
 @ControllerAdvice
 @RequiredArgsConstructor
 public class DefaultThymeleafAttributes {
-    private final CurrentUserApi currentUserApi;
     private final CreateTaskUseCase createTaskUseCase;
+    private final CreateProjectUseCase createProjectUseCase;
 
     //TODO: Internationalization
     @SuppressWarnings("SameReturnValue")
@@ -33,6 +33,6 @@ public class DefaultThymeleafAttributes {
 
     @ModelAttribute("canCreateProjects")
     public boolean canCreateProjects() {
-        return currentUserApi.isSystemAdmin();
+        return createProjectUseCase.canCreateProject();
     }
 }

@@ -55,8 +55,14 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
         keyUniquePolicy.ensureProjectKeyUnique(request.key());
         canCreateProjectPolicy.ensureCanCreateProject();
         final var project = Project.createNew(request.key(), request.name(), currentUser);
+        projectRepository.save(project);
         log.info("Project {} created", project.getKey());
         return project;
+    }
+
+    @Override
+    public boolean canCreateProject() {
+        return currentUserApi.isSystemAdmin();
     }
 
     @Override
