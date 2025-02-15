@@ -6,5 +6,6 @@ include "integration:inmemory"
 include "integration:solr"
 include "integration:inmemory"
 include "integration:ui"
+include "integration:sql"
 include "integration:application"
 

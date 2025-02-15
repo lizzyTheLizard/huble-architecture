@@ -9,6 +9,11 @@ services:
       - /config
     volumes:
       - ./integrations/src/main/resources/solr:/config/conf
-      - solr-data:/var/solr
-volumes:
-  solr-data:
+  postgres:
+    image: 'postgres:16-alpine'
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: 'tasks'
+      POSTGRES_USER: 'dev'
+      POSTGRES_PASSWORD: 'dev'

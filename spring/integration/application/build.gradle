@@ -11,15 +11,19 @@ configurations {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    runtimeOnly 'org.postgresql:postgresql'
     implementation project(":common:")
     implementation project(":tasks")
     implementation project(":users")
-    implementation project(":integration:inmemory")
+    implementation project(":integration:sql")
     implementation project(":integration:ui")
     implementation project(":integration:solr")
     developmentOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:postgresql'
     testImplementation "org.testcontainers:testcontainers"
     // Fix vulnerabilities in testcontainers
     testImplementation 'org.apache.commons:commons-compress:1.26.0'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }

@@ -1,0 +1,15 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation project(":common")
+    implementation project(":users")
+    implementation project(":tasks")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    // Fix vulnerabilities in testcontainers
+    testImplementation 'org.apache.commons:commons-compress:1.26.0'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+}
