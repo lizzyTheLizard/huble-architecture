@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.integration.ui.controller;
+package site.gutschi.humble.spring.integration.ui;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import site.gutschi.humble.spring.tasks.api.CreateTaskUseCase;
 
 @ControllerAdvice
 @RequiredArgsConstructor
-public class DefaultModelControllerAdvice {
+public class DefaultThymeleafAttributes {
     private final CurrentUserApi currentUserApi;
     private final CreateTaskUseCase createTaskUseCase;
 

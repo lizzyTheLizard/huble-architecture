@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.integration.ui.controller;
+package site.gutschi.humble.spring.integration.ui.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;

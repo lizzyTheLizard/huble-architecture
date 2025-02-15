@@ -16,4 +16,8 @@ module site.gutschi.humble.spring.integration.ui {
     requires spring.beans;
     requires org.apache.tomcat.embed.core;
     requires jakarta.validation;
+    requires spring.webmvc;
+    requires spring.core;
+    requires spring.jcl;
+    requires spring.boot.autoconfigure;
 }
