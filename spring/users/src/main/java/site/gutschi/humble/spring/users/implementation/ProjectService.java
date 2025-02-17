@@ -21,16 +21,14 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     private final CanAccessProjectPolicy canAccessProjectPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
     private final CanCreateProjectPolicy canCreateProjectPolicy;
-    private final CreateUserUseCase createUserUseCase;
 
     @Override
     public void assignUser(AssignUserRequest request) {
         final var project = projectRepository.findByKey(request.projectKey())
                 .orElseThrow(() -> new ProjectNotFoundException(request.projectKey()));
         canAccessProjectPolicy.ensureCanManage(project);
-        final var createUserRequest = new CreateUserRequest("", request.userEmail());
         final var user = userRepository.findByMail(request.userEmail())
-                .orElseGet(() -> createUserUseCase.createUser(createUserRequest));
+                .orElseThrow(() -> new UserNotFoundException(request.userEmail()));
         project.setUserRole(user, request.type());
         projectRepository.save(project);
         log.info("User {} assigned to project {}", user.getEmail(), project.getKey());

@@ -19,7 +19,6 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.stream.IntStream;
 
-//TODO: Replace by real database
 @Service
 @RequiredArgsConstructor
 public class InMemoryInitializer {

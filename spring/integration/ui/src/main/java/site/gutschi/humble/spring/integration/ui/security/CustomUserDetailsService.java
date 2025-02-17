@@ -9,6 +9,7 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
+    //TODO: Create use case instead of direct repository access
     private final UserRepository userRepository;
 
     @Override
