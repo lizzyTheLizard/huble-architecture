@@ -14,10 +14,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.thymeleaf.exceptions.TemplateInputException;
-import site.gutschi.humble.spring.tasks.api.EditTaskNotAllowedException;
-import site.gutschi.humble.spring.tasks.api.TaskDeletedException;
-import site.gutschi.humble.spring.tasks.api.TaskNotFoundException;
-import site.gutschi.humble.spring.users.api.*;
+import site.gutschi.humble.spring.common.exception.InvalidInputException;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
 
 import java.util.Arrays;
 
@@ -45,43 +44,22 @@ public class ErrorControllerAdvice {
         return "error";
     }
 
-    @ExceptionHandler({UserNotFoundException.class, ProjectNotFoundException.class, TaskNotFoundException.class})
+    @ExceptionHandler({NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotFoundException(Exception exception, Model model) {
+    public String handleNotFoundException(NotFoundException exception, Model model) {
         model.addAttribute("status", HttpStatus.NOT_FOUND.value());
         model.addAttribute("error", HttpStatus.NOT_FOUND.getReasonPhrase());
-        model.addAttribute("message", exception.getMessage());
+        model.addAttribute("message", exception.getPublicMessage());
         model.addAttribute("trace", getStackTrace(exception));
         return "error";
     }
 
-    @ExceptionHandler({ProjectNotVisibleException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleProjectNotVisibleException(ProjectNotVisibleException exception, Model model) {
-        final var notFoundException = new ProjectNotFoundException(exception.getProjectKey());
-        return handleNotFoundException(notFoundException, model);
-    }
-
-    @ExceptionHandler({UserNotVisibleException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleUserNotVisibleException(UserNotVisibleException exception, Model model) {
-        final var notFoundException = new UserNotFoundException(exception.getUserEmail());
-        return handleNotFoundException(notFoundException, model);
-    }
-
-    @ExceptionHandler({TaskDeletedException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleDeletedException(TaskDeletedException exception, Model model) {
-        final var notFoundException = new TaskNotFoundException(exception.getTaskKey());
-        return handleNotFoundException(notFoundException, model);
-    }
-
-    @ExceptionHandler({EditTaskNotAllowedException.class, ManageProjectNotAllowedException.class, ManageUserNotAllowedException.class, CreateProjectNotAllowedException.class})
+    @ExceptionHandler({NotAllowedException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public String handleNotAllowedException(Exception exception, Model model) {
+    public String handleNotAllowedException(NotAllowedException exception, Model model) {
         model.addAttribute("status", HttpStatus.FORBIDDEN.value());
         model.addAttribute("error", HttpStatus.FORBIDDEN.getReasonPhrase());
-        model.addAttribute("message", exception.getMessage());
+        model.addAttribute("message", exception.getPublicMessage());
         model.addAttribute("trace", getStackTrace(exception));
         return "error";
     }
@@ -105,12 +83,12 @@ public class ErrorControllerAdvice {
         return "error";
     }
 
-    @ExceptionHandler({KeyNotUniqueException.class})
+    @ExceptionHandler({InvalidInputException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleInvalidInputException(KeyNotUniqueException exception, Model model) {
+    public String handleInvalidInputException(InvalidInputException exception, Model model) {
         model.addAttribute("status", HttpStatus.BAD_REQUEST.value());
         model.addAttribute("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        model.addAttribute("message", exception.getMessage());
+        model.addAttribute("message", exception.getPublicMessage());
         model.addAttribute("trace", getStackTrace(exception));
         return "error";
     }

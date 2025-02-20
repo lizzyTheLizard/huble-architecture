@@ -13,7 +13,6 @@ import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerResponse;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
-import site.gutschi.humble.spring.users.api.GetProjectResponse;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
@@ -22,6 +21,7 @@ import site.gutschi.humble.spring.users.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -58,10 +58,10 @@ class GetTasksTest {
         Mockito.when(existingTask.getProjectKey()).thenReturn("PRO");
         Mockito.when(testProject.getKey()).thenReturn("PRO");
         Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(testProject.getProjectRoles()).thenReturn(List.of(new ProjectRole(currentUser, ProjectRoleType.DEVELOPER)));
-        final var getProjectResponse = new GetProjectResponse(testProject, true);
+        Mockito.when(testProject.getProjectRoles()).thenReturn(Set.of(new ProjectRole(currentUser, ProjectRoleType.DEVELOPER)));
+        final var getProjectResponse = new GetProjectUseCase.GetProjectResponse(testProject, true);
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
-        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(testProject));
+        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(Set.of(testProject));
         Mockito.when(taskRepository.findByKey("PRO-13")).thenReturn(Optional.of(existingTask));
         Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
@@ -86,7 +86,7 @@ class GetTasksTest {
 
     @Test
     void findTasks() {
-        final var searchRequest = new SearchCallerRequest("test", 1, 10, List.of(testProject));
+        final var searchRequest = new SearchCallerRequest("test", 1, 10, Set.of(testProject));
         final var taskView = Mockito.mock(FindTasksResponse.TaskFindView.class);
         final var searchResponse = new SearchCallerResponse(List.of(taskView), 3);
         Mockito.when(searchCaller.findTasks(Mockito.eq(searchRequest))).thenReturn(searchResponse);

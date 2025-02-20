@@ -90,10 +90,11 @@ public class ProjectRepositoryTests {
         assertThat(result.get().getKey()).isEqualTo(project.getKey());
         assertThat(result.get().getName()).isEqualTo(project.getName());
         assertThat(result.get().getEstimations()).containsExactlyInAnyOrder(project.getEstimations().toArray(Integer[]::new));
-        assertThat(result.get().getProjectRoles()).zipSatisfy(project.getProjectRoles(), (a, b) -> {
-            assertThat(a.user().getEmail()).isEqualTo(b.user().getEmail());
-            assertThat(a.type()).isEqualTo(b.type());
-        });
+
+        assertThat(result.get().getProjectRoles()).hasSize(project.getProjectRoles().size());
+        for (ProjectRole role : project.getProjectRoles()) {
+            assertThat(result.get().getRole(role.user().getEmail())).contains(role.type());
+        }
         assertThat(result.get().getHistoryEntries()).zipSatisfy(project.getHistoryEntries(), (a, b) -> {
             assertThat(a.user()).isEqualTo(b.user());
             assertThat(a.timestamp()).isEqualTo(b.timestamp());

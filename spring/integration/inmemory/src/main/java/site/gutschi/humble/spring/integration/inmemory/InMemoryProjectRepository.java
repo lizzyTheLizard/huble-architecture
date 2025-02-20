@@ -6,12 +6,16 @@ import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class InMemoryProjectRepository implements ProjectRepository {
-    private final List<Project> projects = new LinkedList<>();
+    private final Set<Project> projects = new HashSet<>();
 
     @Override
     public void save(Project project) {
@@ -27,14 +31,14 @@ public class InMemoryProjectRepository implements ProjectRepository {
     }
 
     @Override
-    public Collection<Project> findAll() {
-        return Collections.unmodifiableList(projects);
+    public Set<Project> findAll() {
+        return Collections.unmodifiableSet(projects);
     }
 
     @Override
-    public Collection<Project> findAllForUser(User user) {
+    public Set<Project> findAllForUser(User user) {
         return projects.stream()
                 .filter(p -> p.getRole(user.getEmail()).isPresent())
-                .toList();
+                .collect(Collectors.toUnmodifiableSet());
     }
 }

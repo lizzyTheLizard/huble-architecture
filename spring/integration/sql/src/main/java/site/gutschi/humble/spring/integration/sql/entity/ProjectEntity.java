@@ -2,25 +2,27 @@ package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.users.model.Project;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "project")
 public class ProjectEntity {
     @Id
     @NotBlank
     private String key;
     @ElementCollection(fetch = FetchType.EAGER)
-    private Collection<Integer> estimations;
+    private Set<Integer> estimations;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "project")
-    private Collection<ProjectRoleEntity> projectRoles;
+    private Set<ProjectRoleEntity> projectRoles;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "project")
-    private Collection<ProjectHistoryEntryEntity> historyEntries;
+    private Set<ProjectHistoryEntryEntity> historyEntries;
     @NotBlank
     private String name;
     private boolean active;
@@ -33,10 +35,10 @@ public class ProjectEntity {
         result.setEstimations(project.getEstimations());
         result.setProjectRoles(project.getProjectRoles().stream()
                 .map(e -> ProjectRoleEntity.fromModel(e, result))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         result.setHistoryEntries(project.getHistoryEntries().stream()
                 .map(h -> ProjectHistoryEntryEntity.fromModel(h, result, repository))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         return result;
     }
 

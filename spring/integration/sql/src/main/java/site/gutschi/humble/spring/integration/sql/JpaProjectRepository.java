@@ -11,8 +11,8 @@ import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 
-import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,17 +35,17 @@ public class JpaProjectRepository implements ProjectRepository {
     }
 
     @Override
-    public Collection<Project> findAll() {
+    public Set<Project> findAll() {
         return projectEntityRepository.findAll().stream()
                 .map(ProjectEntity::toModel)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public Collection<Project> findAllForUser(User user) {
+    public Set<Project> findAllForUser(User user) {
         final var userEntity = UserEntity.fromModel(user);
         return projectEntityRepository.findByUser(userEntity).stream()
                 .map(ProjectEntity::toModel)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

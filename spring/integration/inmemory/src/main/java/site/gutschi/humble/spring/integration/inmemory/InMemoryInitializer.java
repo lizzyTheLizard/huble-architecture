@@ -17,6 +17,7 @@ import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
+import java.util.List;
 import java.util.stream.IntStream;
 
 @Service
@@ -33,26 +34,18 @@ public class InMemoryInitializer {
         final var user1 = User.builder()
                 .name("Test Manager")
                 .email("test@example.com")
-                .password("{noop}password")
-                .systemAdmin(false)
                 .build();
         final var user2 = User.builder()
                 .name("Test Developer")
                 .email("dev@example.com")
-                .password("{noop}password")
-                .systemAdmin(false)
                 .build();
         final var user3 = User.builder()
                 .name("Test Extern")
                 .email("extern@example.com")
-                .password("{noop}password")
-                .systemAdmin(false)
                 .build();
         final var user4 = User.builder()
                 .name("Sys Admin")
                 .email("admin@example.com")
-                .password("{noop}password")
-                .systemAdmin(true)
                 .build();
         final var project = Project.builder()
                 .active(true)
@@ -63,6 +56,7 @@ public class InMemoryInitializer {
                 .estimation(1)
                 .estimation(3)
                 .estimation(5)
+                .historyEntries(List.of())
                 .currentUserApi(currentUserApi)
                 .build();
         final var tasks = IntStream.range(1, 20)

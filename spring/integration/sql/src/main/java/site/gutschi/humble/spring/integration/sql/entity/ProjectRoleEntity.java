@@ -1,11 +1,13 @@
 package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "projectRole")
 public class ProjectRoleEntity {
     @Id

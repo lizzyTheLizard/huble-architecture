@@ -74,7 +74,7 @@ class ProjectTest {
     @Test
     void setUserRole_newUser() {
         final var project = createProject();
-        final var user = new User("user@example.com", "pwd", false, "user");
+        final var user = new User("user@example.com", "user");
 
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
@@ -89,7 +89,7 @@ class ProjectTest {
     @Test
     void setUserRole_changedUser() {
         final var project = createProject();
-        final var user = new User("user@example.com", "pwd", false, "user");
+        final var user = new User("user@example.com", "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.setUserRole(user, ProjectRoleType.STAKEHOLDER);
@@ -105,7 +105,7 @@ class ProjectTest {
     @Test
     void setUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user@example.com", "pwd", false, "user");
+        final var user = new User("user@example.com", "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
         final var historySize = project.getHistoryEntries().size();
 
@@ -118,7 +118,7 @@ class ProjectTest {
     @Test
     void removeUserRole() {
         final var project = createProject();
-        final var user = new User("user@example.com", "pwd", false, "user");
+        final var user = new User("user@example.com", "user");
         project.setUserRole(user, ProjectRoleType.ADMIN);
 
         project.removeUserRole(user);
@@ -134,7 +134,7 @@ class ProjectTest {
     @Test
     void removeUserRole_unchangedUser() {
         final var project = createProject();
-        final var user = new User("user@example.com", "pwd", false, "user");
+        final var user = new User("user@example.com", "user");
         project.removeUserRole(user);
         final var historySize = project.getHistoryEntries().size();
 
@@ -150,7 +150,7 @@ class ProjectTest {
                 .key("key")
                 .name("name")
                 .active(true)
-                .projectRole(new ProjectRole(new User("B", "pwd", false, "a"), ProjectRoleType.ADMIN))
+                .projectRole(new ProjectRole(new User("B", "a"), ProjectRoleType.ADMIN))
                 .build();
     }
 }

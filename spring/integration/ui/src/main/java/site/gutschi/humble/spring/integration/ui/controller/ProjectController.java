@@ -7,12 +7,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import site.gutschi.humble.spring.users.api.*;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.users.api.CreateProjectUseCase;
+import site.gutschi.humble.spring.users.api.EditProjectUseCase;
+import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -21,6 +26,7 @@ public class ProjectController {
     private final GetProjectUseCase getProjectUseCase;
     private final EditProjectUseCase editProjectUseCase;
     private final CreateProjectUseCase createProjectUseCase;
+    private final CurrentUserApi currentUserApi;
 
     @GetMapping({"/index.html", "/", "/projects"})
     public String showProjectOverview(Model model) {
@@ -43,7 +49,7 @@ public class ProjectController {
     public String editProjectView(@PathVariable("key") String key, Model model) {
         final var response = getProjectUseCase.getProject(key);
         if (!response.manageable()) {
-            throw new ManageProjectNotAllowedException(response.project().getKey());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUserApi.currentEmail());
         }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
@@ -55,12 +61,12 @@ public class ProjectController {
     public String editProject(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
         final var active = Boolean.parseBoolean(body.get("active"));
         final var estimations = body.get("estimations").isEmpty()
-                ? List.<Integer>of()
+                ? Set.<Integer>of()
                 : Arrays.stream(body.get("estimations").split(","))
                 .map(String::trim)
                 .map(Integer::parseInt)
-                .toList();
-        final var request = new EditProjectRequest(key, body.get("name"), estimations, active);
+                .collect(Collectors.toSet());
+        final var request = new EditProjectUseCase.EditProjectRequest(key, body.get("name"), estimations, active);
         editProjectUseCase.editProject(request);
         return "redirect:/projects/" + key;
     }
@@ -70,7 +76,7 @@ public class ProjectController {
     public String assignUserView(@PathVariable("key") String key, Model model) {
         final var response = getProjectUseCase.getProject(key);
         if (!response.manageable()) {
-            throw new ManageProjectNotAllowedException(response.project().getKey());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUserApi.currentEmail());
         }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
@@ -83,7 +89,7 @@ public class ProjectController {
     public String assignUser(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
         final var user = body.get("user");
         final var role = ProjectRoleType.valueOf(body.get("role"));
-        final var request = new AssignUserRequest(user, key, role);
+        final var request = new EditProjectUseCase.AssignUserRequest(user, key, role);
         editProjectUseCase.assignUser(request);
         return "redirect:/projects/" + key;
     }
@@ -91,7 +97,7 @@ public class ProjectController {
     @PostMapping("/projects/{key}/unassign")
     public String unassignUser(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
         final var user = body.get("user");
-        final var request = new UnAssignUserRequest(user, key);
+        final var request = new EditProjectUseCase.UnAssignUserRequest(user, key);
         editProjectUseCase.unAssignUser(request);
         return "redirect:/projects/" + key;
     }
@@ -99,14 +105,14 @@ public class ProjectController {
     @GetMapping("/projects/create")
     public String createProjectView(Model model) {
         if (!createProjectUseCase.canCreateProject()) {
-            throw new CreateProjectNotAllowedException();
+            throw NotAllowedException.notAllowed("Project", "create", currentUserApi.currentEmail());
         }
         return "createProject";
     }
 
     @PostMapping("/projects/create")
     public String createProject(@RequestParam Map<String, String> body) {
-        final var request = new CreateProjectRequest(body.get("key"), body.get("name"));
+        final var request = new CreateProjectUseCase.CreateProjectRequest(body.get("key"), body.get("name"));
         final var project = createProjectUseCase.createProject(request);
         return "redirect:/projects/" + project.getKey();
     }

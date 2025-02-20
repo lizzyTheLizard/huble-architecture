@@ -9,7 +9,7 @@ import java.util.*;
 @Service
 public class InMemoryTaskRepository implements TaskRepository {
     private final Map<String, Integer> nextId = new HashMap<>();
-    private final Collection<Task> tasks = new LinkedList<>();
+    private final Set<Task> tasks = new HashSet<>();
 
     @Override
     public Optional<Task> findByKey(String taskKey) {

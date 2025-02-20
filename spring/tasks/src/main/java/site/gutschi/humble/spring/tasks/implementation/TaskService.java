@@ -13,7 +13,7 @@ import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 
-import java.util.Collection;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -112,7 +112,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     }
 
     @Override
-    public Collection<Project> getProjectsToCreate() {
+    public Set<Project> getProjectsToCreate() {
         return getProjectUseCase.getAllProjects();
     }
 }

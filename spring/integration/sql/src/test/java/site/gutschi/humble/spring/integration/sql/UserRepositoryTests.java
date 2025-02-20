@@ -33,9 +33,9 @@ public class UserRepositoryTests {
 
     private static Stream<User> provideUsers() {
         return Stream.of(
-                new User("test@example.com", "password", false, "Test User"),
-                new User("admin@example.com", "password", true, "Admin"),
-                new User("admin@example.com", null, true, null)
+                new User("test@example.com", "Test User"),
+                new User("admin@example.com", "Admin"),
+                new User("admin@example.com", null)
         );
     }
 
@@ -48,8 +48,6 @@ public class UserRepositoryTests {
         assertThat(result).isPresent();
         assertThat(result.get().getEmail()).isEqualTo(user.getEmail());
         assertThat(result.get().getName()).isEqualTo(user.getName());
-        assertThat(result.get().getPassword()).isEqualTo(user.getPassword());
-        assertThat(result.get().isSystemAdmin()).isEqualTo(user.isSystemAdmin());
     }
 
     @Test

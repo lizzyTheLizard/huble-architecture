@@ -8,7 +8,7 @@ import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 
-import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -30,7 +30,7 @@ public class TaskSolrDocument {
     @Field("estimation_i")
     public Integer estimation;
     @Field("comments_t")
-    public Collection<String> comments;
+    public List<String> comments;
 
     public TaskSolrDocument() {
     }

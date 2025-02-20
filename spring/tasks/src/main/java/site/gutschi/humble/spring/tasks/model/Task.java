@@ -17,8 +17,8 @@ public class Task {
     private final String projectKey;
     @Getter
     private final String creatorEmail;
-    private final List<Comment> comments = new LinkedList<>();
-    private final List<TaskHistoryEntry> historyEntries = new LinkedList<>();
+    private final Set<Comment> comments = new HashSet<>();
+    private final Set<TaskHistoryEntry> historyEntries = new HashSet<>();
     public Integer estimationOrNull;
     @Getter
     private TaskStatus status;
@@ -61,7 +61,7 @@ public class Task {
                 .newValue(status.name())
                 .build();
         this.status = status;
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
@@ -72,7 +72,7 @@ public class Task {
                 .oldValue(this.title)
                 .newValue(title)
                 .build();
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         this.title = title;
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
@@ -84,7 +84,7 @@ public class Task {
                 .oldValue(this.description)
                 .newValue(description)
                 .build();
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         this.description = description;
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
@@ -101,7 +101,7 @@ public class Task {
                 .newValue(assigneeEmailOrNull)
                 .build();
         this.assigneeEmailOrNull = assigneeEmailOrNull;
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
@@ -117,7 +117,7 @@ public class Task {
                 .newValue(estimationOrNull == null ? null : estimationOrNull.toString())
                 .build();
         this.estimationOrNull = estimationOrNull;
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
@@ -126,7 +126,7 @@ public class Task {
                 .type(TaskHistoryType.DELETED)
                 .build();
         this.deleted = true;
-        this.historyEntries.addFirst(historyEntry);
+        this.historyEntries.add(historyEntry);
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
@@ -139,17 +139,17 @@ public class Task {
                 .newValue(text)
                 .build();
         final var comment = new Comment(user, time, text);
-        this.comments.addFirst(comment);
-        this.historyEntries.addFirst(historyEntry);
+        this.comments.add(comment);
+        this.historyEntries.add(historyEntry);
         log.debug("Task {} edited: {}", getKey(), historyEntry);
     }
 
-    public Collection<Comment> getComments() {
-        return Collections.unmodifiableCollection(this.comments);
+    public Set<Comment> getComments() {
+        return Collections.unmodifiableSet(this.comments);
     }
 
-    public Collection<TaskHistoryEntry> getHistoryEntries() {
-        return Collections.unmodifiableCollection(this.historyEntries);
+    public Set<TaskHistoryEntry> getHistoryEntries() {
+        return Collections.unmodifiableSet(this.historyEntries);
     }
 
     private TaskHistoryEntry.TaskHistoryEntryBuilder historyBuilder() {

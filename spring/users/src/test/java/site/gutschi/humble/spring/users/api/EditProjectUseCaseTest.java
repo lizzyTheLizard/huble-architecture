@@ -1,41 +1,32 @@
 package site.gutschi.humble.spring.users.api;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 @SpringBootTest
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class EditProjectUseCaseTest {
     @Autowired
     private EditProjectUseCase target;
-
-    @Mock
-    private User currentUser;
-
-    @Mock
-    private User testUser;
-
-    @Mock
-    private Project testProject;
 
     @MockitoBean
     private CurrentUserApi currentUserApi;
@@ -46,200 +37,215 @@ class EditProjectUseCaseTest {
     @MockitoBean
     private ProjectRepository projectRepository;
 
+    private User currentUser;
+    private User testUser;
+    private Project testProject;
+
     @BeforeEach
     void setup() {
-        Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
-        Mockito.when(testUser.getEmail()).thenReturn("test@user.com");
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.ADMIN));
-        Mockito.when(testProject.getKey()).thenReturn("PRO");
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        testUser = User.builder().email("test@example.com").name("Dev").build();
+        testProject = Project.createNew("PRO", "Test Project", currentUser, currentUserApi);
+        testProject.setUserRole(currentUser, ProjectRoleType.ADMIN);
         Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.of(testUser));
         Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.of(testProject));
-        Mockito.when(projectRepository.findAll()).thenReturn(List.of(testProject));
-        Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
+        //Mockito.when(projectRepository.findAll()).thenReturn(Set.of(testProject));
+        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
     }
 
-    @Test
-    void editNotAllowed() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        final var request = new EditProjectRequest(testProject.getKey(), "New Name", List.of(3, 5, 7), true);
+    @Nested
+    class EditProject {
+        @Test
+        void projectNotAllowed() {
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
 
-        assertThatExceptionOfType(ManageProjectNotAllowedException.class).isThrownBy(() -> target.editProject(request));
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.editProject(request));
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void projectNotVisible() {
+            testProject.removeUserRole(currentUser);
+            final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.editProject(request));
+
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void projectNotFound() {
+            Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
+            final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.editProject(request));
+
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void asSystemUser() {
+            // needs at least one admin…
+            testProject.setUserRole(testUser, ProjectRoleType.ADMIN);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
+
+            target.editProject(request);
+
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+            assertThat(testProject.isActive()).isTrue();
+            assertThat(testProject.getEstimations()).containsExactlyInAnyOrder(request.estimations().toArray(new Integer[0]));
+            assertThat(testProject.getName()).isEqualTo(request.name());
+
+        }
+
+        @Test
+        void ownProject() {
+            final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
+
+            target.editProject(request);
+
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+            assertThat(testProject.isActive()).isTrue();
+            assertThat(testProject.getEstimations()).containsExactlyInAnyOrder(request.estimations().toArray(new Integer[0]));
+            assertThat(testProject.getName()).isEqualTo(request.name());
+        }
     }
 
-    @Test
-    void editNotVisible() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.empty());
-        final var request = new EditProjectRequest(testProject.getKey(), "New Name", List.of(3, 5, 7), true);
+    @Nested
+    class AssignUser {
+        @Test
+        void projectNotAllowed() {
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
 
-        assertThatExceptionOfType(ProjectNotVisibleException.class).isThrownBy(() -> target.editProject(request));
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.assignUser(request));
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void projectNotVisible() {
+            testProject.removeUserRole(currentUser);
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.assignUser(request));
+
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void projectNotFound() {
+            Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.assignUser(request));
+
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
+
+        @Test
+        void userNotFound() {
+            Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.empty());
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.assignUser(request));
+        }
+
+        @Test
+        void asSystemUser() {
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+
+            target.assignUser(request);
+
+            assertThat(testProject.getRole(testUser.getEmail())).contains(ProjectRoleType.STAKEHOLDER);
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+        }
+
+        @Test
+        void ownProject() {
+            final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+
+            target.assignUser(request);
+
+            assertThat(testProject.getRole(testUser.getEmail())).contains(ProjectRoleType.STAKEHOLDER);
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+        }
     }
 
-    @Test
-    void editNotFound() {
-        Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
-        final var request = new EditProjectRequest(testProject.getKey(), "New Name", List.of(3, 5, 7), true);
+    @Nested
+    class UnAssignUser {
+        @BeforeEach
+        void setup() {
+            testProject.setUserRole(testUser, ProjectRoleType.DEVELOPER);
+        }
 
-        assertThatExceptionOfType(ProjectNotFoundException.class).isThrownBy(() -> target.editProject(request));
+        @Test
+        void projectNotAllowed() {
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.unAssignUser(request));
 
-    @Test
-    void editAsSystemUser() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
-        final var request = new EditProjectRequest(testProject.getKey(), "New Name", List.of(3, 5, 7), true);
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
 
-        target.editProject(request);
+        @Test
+        void projectNotVisible() {
+            testProject.removeUserRole(currentUser);
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setName("New Name");
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setEstimations(List.of(3, 5, 7));
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setActive(true);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
 
-    }
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
 
-    @Test
-    void editOwnProject() {
-        final var request = new EditProjectRequest(testProject.getKey(), "New Name", List.of(3, 5, 7), true);
+        @Test
+        void projectNotFound() {
+            Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        target.editProject(request);
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
 
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setName("New Name");
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setEstimations(List.of(3, 5, 7));
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setActive(true);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
-    }
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
 
-    @Test
-    void assignUserNotAllowed() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+        @Test
+        void userNotFound() {
+            Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.empty());
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        assertThatExceptionOfType(ManageProjectNotAllowedException.class).isThrownBy(() -> target.assignUser(request));
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
+            Mockito.verify(projectRepository, Mockito.never()).save(testProject);
+        }
 
-    @Test
-    void assignUserNotVisible() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.empty());
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+        @Test
+        void asSystemUser() {
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        assertThatExceptionOfType(ProjectNotVisibleException.class).isThrownBy(() -> target.assignUser(request));
+            target.unAssignUser(request);
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
+            assertThat(testProject.getRole(testUser.getEmail())).isEmpty();
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+        }
 
-    @Test
-    void assignUserProjectNotFound() {
-        Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
+        @Test
+        void ownProject() {
+            final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
-        assertThatExceptionOfType(ProjectNotFoundException.class).isThrownBy(() -> target.assignUser(request));
+            target.unAssignUser(request);
 
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
-
-    @Test
-    void assignUserUserNotFound() {
-        Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.empty());
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
-
-        target.assignUser(request);
-
-        final Consumer<User> isTestUser = u -> assertThat(u.getEmail()).isEqualTo(testUser.getEmail());
-        Mockito.verify(userRepository, Mockito.atLeastOnce()).save(Mockito.assertArg(isTestUser));
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setUserRole(Mockito.assertArg(isTestUser), Mockito.eq(ProjectRoleType.STAKEHOLDER));
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
-    }
-
-    @Test
-    void assignUserAsSystemUser() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
-
-        target.assignUser(request);
-
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setUserRole(testUser, ProjectRoleType.STAKEHOLDER);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
-    }
-
-    @Test
-    void assignUserOwnProject() {
-        final var request = new AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
-
-        target.assignUser(request);
-
-        Mockito.verify(testProject, Mockito.atLeastOnce()).setUserRole(testUser, ProjectRoleType.STAKEHOLDER);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserNotAllowed() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        assertThatExceptionOfType(ManageProjectNotAllowedException.class).isThrownBy(() -> target.unAssignUser(request));
-
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserNotVisible() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.empty());
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        assertThatExceptionOfType(ProjectNotVisibleException.class).isThrownBy(() -> target.unAssignUser(request));
-
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserProjectNotFound() {
-        Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.empty());
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        assertThatExceptionOfType(ProjectNotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
-
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserUserNotFound() {
-        Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.empty());
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        assertThatExceptionOfType(UserNotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
-
-        Mockito.verify(projectRepository, Mockito.never()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserAsSystemUser() {
-        Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        target.unAssignUser(request);
-
-        Mockito.verify(testProject, Mockito.atLeastOnce()).removeUserRole(testUser);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
-    }
-
-    @Test
-    void unAssignUserOwnProject() {
-        final var request = new UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
-
-        target.unAssignUser(request);
-
-        Mockito.verify(testProject, Mockito.atLeastOnce()).removeUserRole(testUser);
-        Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+            assertThat(testProject.getRole(testUser.getEmail())).isEmpty();
+            Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
+        }
     }
 }

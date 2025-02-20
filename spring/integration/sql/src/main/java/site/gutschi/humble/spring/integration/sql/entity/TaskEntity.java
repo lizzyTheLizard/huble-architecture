@@ -2,15 +2,17 @@ package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "task")
 public class TaskEntity {
     @Id
@@ -18,9 +20,9 @@ public class TaskEntity {
     @ManyToOne
     private UserEntity creator;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "task")
-    private Collection<CommentEntity> comments;
+    private Set<CommentEntity> comments;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "task")
-    private Collection<TaskHistoryEntryEntity> historyEntries;
+    private Set<TaskHistoryEntryEntity> historyEntries;
     private Integer estimation;
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
@@ -38,10 +40,10 @@ public class TaskEntity {
         entity.setCreator(repository.getReferenceById(task.getCreatorEmail()));
         entity.setComments(task.getComments().stream()
                 .map(c -> CommentEntity.fromModel(c, entity, repository))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         entity.setHistoryEntries(task.getHistoryEntries().stream()
                 .map(h -> TaskHistoryEntryEntity.fromModel(h, entity, repository))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         entity.setEstimation(task.getEstimation().orElse(null));
         entity.setStatus(task.getStatus());
         entity.setTitle(task.getTitle());

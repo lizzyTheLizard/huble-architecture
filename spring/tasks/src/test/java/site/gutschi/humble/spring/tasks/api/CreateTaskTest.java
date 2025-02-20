@@ -11,19 +11,18 @@ import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
-import site.gutschi.humble.spring.users.api.GetProjectResponse;
 import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+// TODO: Document and refactor module tasks
 @SpringBootTest
 class CreateTaskTest {
     @Autowired
@@ -53,9 +52,9 @@ class CreateTaskTest {
         Mockito.when(currentUser.getEmail()).thenReturn("dev@example.com");
         Mockito.when(testProject.getRole(currentUser.getEmail())).thenReturn(Optional.of(ProjectRoleType.DEVELOPER));
         Mockito.when(testProject.isActive()).thenReturn(true);
-        final var getProjectResponse = new GetProjectResponse(testProject, true);
+        final var getProjectResponse = new GetProjectUseCase.GetProjectResponse(testProject, true);
         Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
-        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(List.of(testProject));
+        Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(Set.of(testProject));
         Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
         Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);

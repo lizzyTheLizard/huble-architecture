@@ -8,13 +8,21 @@ import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.util.*;
 
+/**
+ * A project in the system. Project are identified by their key and are always created by a system admin.
+ * A project can be deactivated, which means it is not editable anymore. A project can have multiple users with different roles.
+ * At least on user must be an admin.
+ */
 public class Project {
     private final CurrentUserApi currentUserApi;
     @Getter
     private final String key;
-    private final Collection<Integer> estimations = new LinkedList<>();
-    private final Collection<ProjectRole> projectRoles = new LinkedList<>();
-    private final Collection<ProjectHistoryEntry> historyEntries = new LinkedList<>();
+    @Singular
+    private final Set<ProjectRole> projectRoles;
+    @Singular
+    private final Set<ProjectHistoryEntry> historyEntries;
+    @Singular
+    private final Set<Integer> estimations;
     @Getter
     private String name;
     @Getter
@@ -26,12 +34,13 @@ public class Project {
         this.key = key;
         this.name = name;
         this.active = active;
-        this.projectRoles.addAll(projectRoles);
-        this.historyEntries.addAll(historyEntries);
-        this.estimations.addAll(estimations);
+        this.projectRoles = new HashSet<>(projectRoles);
+        this.historyEntries = new HashSet<>(historyEntries);
+        this.estimations = new HashSet<>(estimations);
     }
 
-    public static Project createNew(String key, String name, User owner) {
+
+    public static Project createNew(String key, String name, User owner, CurrentUserApi currentUserApi) {
         final var initialAdminRole = new ProjectRole(owner, ProjectRoleType.ADMIN);
         final var historyEntry = ProjectHistoryEntry.builder()
                 .user(owner.getEmail())
@@ -40,6 +49,7 @@ public class Project {
                 .build();
         return Project.builder()
                 .key(key)
+                .currentUserApi(currentUserApi)
                 .name(name)
                 .projectRole(initialAdminRole)
                 .estimation(1)
@@ -123,8 +133,8 @@ public class Project {
         historyEntries.add(historyEntryBuilder.build());
     }
 
-    public Collection<ProjectRole> getProjectRoles() {
-        return Collections.unmodifiableCollection(projectRoles);
+    public Set<ProjectRole> getProjectRoles() {
+        return Collections.unmodifiableSet(projectRoles);
     }
 
     public Optional<ProjectRoleType> getRole(String userEmail) {
@@ -139,15 +149,15 @@ public class Project {
                 .collect(HashMap::new, (map, role) -> map.put(role.user().getEmail(), role.user()), HashMap::putAll);
     }
 
-    public Collection<ProjectHistoryEntry> getHistoryEntries() {
-        return Collections.unmodifiableCollection(historyEntries);
+    public Set<ProjectHistoryEntry> getHistoryEntries() {
+        return Collections.unmodifiableSet(historyEntries);
     }
 
-    public Collection<Integer> getEstimations() {
-        return Collections.unmodifiableCollection(estimations);
+    public Set<Integer> getEstimations() {
+        return Collections.unmodifiableSet(estimations);
     }
 
-    public void setEstimations(Collection<Integer> estimations) {
+    public void setEstimations(Set<Integer> estimations) {
         this.estimations.clear();
         this.estimations.addAll(estimations);
     }

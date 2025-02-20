@@ -2,13 +2,15 @@ package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.tasks.model.Comment;
 
 import java.time.Instant;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "comment")
 public class CommentEntity {
     @Id

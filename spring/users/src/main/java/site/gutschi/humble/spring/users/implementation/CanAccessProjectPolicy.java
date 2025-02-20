@@ -3,8 +3,8 @@ package site.gutschi.humble.spring.users.implementation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.users.api.ManageProjectNotAllowedException;
-import site.gutschi.humble.spring.users.api.ProjectNotVisibleException;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
@@ -13,16 +13,26 @@ import site.gutschi.humble.spring.users.model.ProjectRoleType;
 public class CanAccessProjectPolicy {
     private final CurrentUserApi currentUserApi;
 
+    public void ensureCanCreate() {
+        if (canCreate()) return;
+        throw NotAllowedException.notAllowed("Project", "create", currentUserApi.currentEmail());
+    }
+
     public void ensureCanManage(Project project) {
-        final var currentUser = currentUserApi.currentEmail();
-        if (!canRead(project)) throw new ProjectNotVisibleException(currentUser, project.getKey());
-        if (!canManage(project)) throw new ManageProjectNotAllowedException(project.getKey());
+        ensureCanRead(project);
+        if (!canManage(project))
+            throw NotAllowedException.notAllowed("Project", project.getKey(), "edit", currentUserApi.currentEmail());
     }
 
     public void ensureCanRead(Project project) {
-        final var currentUser = currentUserApi.currentEmail();
         if (canRead(project)) return;
-        throw new ProjectNotVisibleException(currentUser, project.getKey());
+        final var currentUser = currentUserApi.currentEmail();
+        throw NotFoundException.notVisible("Project", project.getKey(), currentUser);
+    }
+
+    public NotFoundException projectNotFound(String projectKey) {
+        final var currentUser = currentUserApi.currentEmail();
+        throw NotFoundException.notFound("Project", projectKey, currentUser);
     }
 
     public boolean canRead(Project project) {
@@ -36,13 +46,12 @@ public class CanAccessProjectPolicy {
     public boolean canManage(Project project) {
         if (currentUserApi.isSystemAdmin()) return true;
         final var currentUser = currentUserApi.currentEmail();
-        final var projectRoleType = getProjectRoleType(currentUser, project);
-        return projectRoleType.canManage();
-    }
-
-    private ProjectRoleType getProjectRoleType(String currentUser, Project project) {
         return project.getRole(currentUser)
-                .orElseThrow(() -> new ProjectNotVisibleException(currentUser, project.getKey()));
+                .map(ProjectRoleType::canManage)
+                .orElse(false);
     }
 
+    public boolean canCreate() {
+        return currentUserApi.isSystemAdmin();
+    }
 }

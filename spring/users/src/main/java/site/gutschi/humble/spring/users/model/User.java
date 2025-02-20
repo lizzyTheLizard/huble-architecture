@@ -11,8 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class User {
     private final String email;
-    private final String password;
-    private final boolean systemAdmin;
     @Setter
     private String name;
 }

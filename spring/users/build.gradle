@@ -1,6 +1,9 @@
 dependencies {
     compileOnly 'org.slf4j:slf4j-api'
     implementation 'org.springframework:spring-context'
+    implementation('commons-validator:commons-validator:1.9.0') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
     implementation project(":common")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

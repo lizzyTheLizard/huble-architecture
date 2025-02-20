@@ -1,14 +1,16 @@
 package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.users.model.ProjectHistoryEntry;
 import site.gutschi.humble.spring.users.model.ProjectHistoryType;
 
 import java.time.Instant;
 
-@Data
+@Getter
+@Setter
 @Entity(name = "projectHistoryEntry")
 public class ProjectHistoryEntryEntity {
     @Id
