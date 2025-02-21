@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
+import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 
 import java.util.Set;
@@ -36,7 +37,7 @@ public class TaskEntity {
 
     public static TaskEntity fromModel(Task task, UserEntityRepository repository) {
         final var entity = new TaskEntity();
-        entity.setKey(task.getKey());
+        entity.setKey(task.getKey().toString());
         entity.setCreator(repository.getReferenceById(task.getCreatorEmail()));
         entity.setComments(task.getComments().stream()
                 .map(c -> CommentEntity.fromModel(c, entity, repository))
@@ -54,12 +55,10 @@ public class TaskEntity {
     }
 
     public Task toModel() {
-        final var split = key.split("-");
-        final var projectKey = split[0];
-        final var id = Integer.parseInt(split[1]);
+        final var key = TaskKey.fromString(this.key);
         return Task.builder()
-                .id(id)
-                .projectKey(projectKey)
+                .id(key.taskId())
+                .projectKey(key.projectKey())
                 .creatorEmail(this.creator.getEmail())
                 .comments(this.comments.stream()
                         .map(CommentEntity::toModel)

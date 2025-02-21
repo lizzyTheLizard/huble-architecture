@@ -35,9 +35,6 @@ class CreateProjectUseCaseTest {
     @MockitoBean
     private UserRepository userRepository;
 
-    private User currentUser;
-    private Project testProject;
-
     @Nested
     class CanCreate {
 
@@ -56,6 +53,9 @@ class CreateProjectUseCaseTest {
 
     @Nested
     class CreateProject {
+        private User currentUser;
+        private Project testProject;
+
         @BeforeEach
         void setup() {
             currentUser = User.builder().email("dev@example.com").name("Hans").build();

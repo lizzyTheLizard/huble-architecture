@@ -3,10 +3,11 @@ package site.gutschi.humble.spring.integration.solr;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
-import site.gutschi.humble.spring.tasks.api.FindTasksResponse;
 import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
+import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
+import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class TaskSolrDocument {
 
     public static TaskSolrDocument fromTask(Task task) {
         final var result = new TaskSolrDocument();
-        result.key = task.getKey();
+        result.key = task.getKey().toString();
         result.project = task.getProjectKey();
         result.title = task.getTitle();
         result.description = task.getDescription();
@@ -51,7 +52,8 @@ public class TaskSolrDocument {
         return result;
     }
 
-    public FindTasksResponse.TaskFindView toTaskView() {
-        return new FindTasksResponse.TaskFindView(key, title, assignee, TaskStatus.valueOf(status));
+    public GetTasksUseCase.TaskFindView toTaskView() {
+        final var key = TaskKey.fromString(this.key);
+        return new GetTasksUseCase.TaskFindView(key, title, assignee, TaskStatus.valueOf(status));
     }
 }

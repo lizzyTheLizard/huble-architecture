@@ -14,7 +14,7 @@ public class InMemoryTaskRepository implements TaskRepository {
     @Override
     public Optional<Task> findByKey(String taskKey) {
         return tasks.stream()
-                .filter(task -> task.getKey().equals(taskKey))
+                .filter(task -> task.getKey().toString().equals(taskKey))
                 .findFirst();
     }
 

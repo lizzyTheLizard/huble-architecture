@@ -13,12 +13,8 @@ public record TaskHistoryEntry(String user, Instant timestamp,
         return switch (type) {
             case CREATED -> "Task created";
             case COMMENTED -> "Comment added";
-            case STATUS_CHANGED -> String.format("Status changed from %s to %s", oldValue, newValue);
-            case TITLE_CHANGED -> String.format("Title changed %s to %s", oldValue, newValue);
-            case DESCRIPTION_CHANGED -> String.format("Description changed %s to %s", oldValue, newValue);
+            case EDITED -> String.format("%s changed from %s to %s", field, oldValue, newValue);
             case DELETED -> "Task deleted";
-            case ASSIGNED -> String.format("Task assigned to %s", newValue);
-            case ESTIMATED -> String.format("Estimated time changed from %s to %s", oldValue, newValue);
         };
     }
 }

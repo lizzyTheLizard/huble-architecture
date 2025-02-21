@@ -3,7 +3,7 @@ package site.gutschi.humble.spring.tasks.implementation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.tasks.api.EditTaskNotAllowedException;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
@@ -14,7 +14,7 @@ public class CanAccessPolicy {
 
     public void ensureCanDeleteTasksInProject(Project project) {
         if (!canDeleteTasksInProject(project)) {
-            throw new EditTaskNotAllowedException(project.getKey());
+            throw NotAllowedException.notAllowed("Project", project.getKey(), "delete task", currentUserApi.currentEmail());
         }
     }
 
@@ -28,7 +28,7 @@ public class CanAccessPolicy {
 
     public void ensureCanEditTasksInProject(Project project) {
         if (!canEditTasksInProject(project)) {
-            throw new EditTaskNotAllowedException(project.getKey());
+            throw NotAllowedException.notAllowed("Project", project.getKey(), "edit task", currentUserApi.currentEmail());
         }
     }
 

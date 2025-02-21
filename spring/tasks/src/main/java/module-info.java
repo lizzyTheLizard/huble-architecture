@@ -6,7 +6,7 @@ module site.gutschi.humble.spring.tasks {
     requires spring.context;
     requires site.gutschi.humble.spring.common;
     requires site.gutschi.humble.spring.users;
-    exports site.gutschi.humble.spring.tasks.api;
+    exports site.gutschi.humble.spring.tasks.usecases;
     exports site.gutschi.humble.spring.tasks.ports;
     exports site.gutschi.humble.spring.tasks.model;
 }

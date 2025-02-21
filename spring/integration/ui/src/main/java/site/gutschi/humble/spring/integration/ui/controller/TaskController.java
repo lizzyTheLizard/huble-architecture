@@ -7,8 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import site.gutschi.humble.spring.tasks.api.*;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
+import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
+import site.gutschi.humble.spring.tasks.usecases.EditTaskUseCase;
+import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,9 +25,11 @@ public class TaskController {
     private final GetTasksUseCase getTasksUseCase;
     private final EditTaskUseCase editTaskUseCase;
     private final CreateTaskUseCase createTaskUseCase;
+    private final CurrentUserApi currentUserApi;
 
     @GetMapping("/tasks/{key}")
-    public String showTask(@PathVariable("key") String key, Model model) {
+    public String showTask(@PathVariable("key") String keyStr, Model model) {
+        final var key = TaskKey.fromString(keyStr);
         final var response = getTasksUseCase.getTaskByKey(key);
         model.addAttribute("task", response.task());
         model.addAttribute("editable", response.editable());
@@ -33,10 +40,11 @@ public class TaskController {
     }
 
     @GetMapping("/tasks/{key}/delete")
-    public String deleteTaskView(@PathVariable("key") String key, Model model) {
+    public String deleteTaskView(@PathVariable("key") String keyStr, Model model) {
+        final var key = TaskKey.fromString(keyStr);
         final var response = getTasksUseCase.getTaskByKey(key);
         if (!response.deletable()) {
-            throw new EditTaskNotAllowedException(response.project().getKey());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "delete task", currentUserApi.currentEmail());
         }
         model.addAttribute("task", response.task());
         model.addAttribute("currentProject", response.project());
@@ -44,25 +52,27 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{key}/delete")
-    public String deleteTask(@PathVariable("key") String key) {
+    public String deleteTask(@PathVariable("key") String keyStr) {
+        final var key = TaskKey.fromString(keyStr);
         final var response = getTasksUseCase.getTaskByKey(key);
-        final var deleteTaskRequest = new DeleteTaskRequest(key);
-        editTaskUseCase.delete(deleteTaskRequest);
+        editTaskUseCase.delete(key);
         return "redirect:/projects/" + response.project().getKey();
     }
 
     @PostMapping("/tasks/{key}/comment")
-    public String addComment(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
-        final var commentTaskRequest = new CommentTaskRequest(key, body.get("comment"));
+    public String addComment(@PathVariable("key") String keyStr, @RequestParam Map<String, String> body) {
+        final var key = TaskKey.fromString(keyStr);
+        final var commentTaskRequest = new EditTaskUseCase.CommentTaskRequest(key, body.get("comment"));
         editTaskUseCase.comment(commentTaskRequest);
         return "redirect:/tasks/" + key;
     }
 
     @GetMapping("/tasks/{key}/edit")
-    public String editTaskView(@PathVariable("key") String key, Model model) {
+    public String editTaskView(@PathVariable("key") String keyStr, Model model) {
+        final var key = TaskKey.fromString(keyStr);
         final var response = getTasksUseCase.getTaskByKey(key);
         if (!response.editable()) {
-            throw new EditTaskNotAllowedException(response.project().getKey());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit task", currentUserApi.currentEmail());
         }
         model.addAttribute("task", response.task());
         model.addAttribute("states", TaskStatus.values());
@@ -73,10 +83,11 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/{key}/edit")
-    public String editTask(@PathVariable("key") String key, @RequestParam Map<String, String> body) {
+    public String editTask(@PathVariable("key") String keyStr, @RequestParam Map<String, String> body) {
+        final var key = TaskKey.fromString(keyStr);
         final var assigneeEmail = body.get("assigneeEmail").isEmpty() ? null : body.get("assigneeEmail");
         final var estimation = body.get("estimation").isEmpty() ? null : Integer.parseInt(body.get("estimation"));
-        final var request = EditTaskRequest.builder()
+        final var request = EditTaskUseCase.EditTaskRequest.builder()
                 .taskKey(key)
                 .title(body.get("title"))
                 .description(body.get("description"))
@@ -91,7 +102,7 @@ public class TaskController {
     @GetMapping("/tasks")
     public String showTasksOverview(@RequestParam(name = "page", required = false) Integer page,
                                     @RequestParam(name = "query") String query, Model model) {
-        final var request = FindTasksRequest.builder()
+        final var request = GetTasksUseCase.FindTasksRequest.builder()
                 .query(query)
                 .page(page != null ? page : 1)
                 .pageSize(10)
@@ -117,7 +128,7 @@ public class TaskController {
 
     @PostMapping("/tasks/create")
     public String createTask(@RequestParam Map<String, String> body) {
-        final var request = new CreateTaskRequest(body.get("project"), body.get("title"), body.get("description"));
+        final var request = new CreateTaskUseCase.CreateTaskRequest(body.get("project"), body.get("title"), body.get("description"));
         final var createdTask = createTaskUseCase.create(request);
         return "redirect:/tasks/" + createdTask.getKey();
     }

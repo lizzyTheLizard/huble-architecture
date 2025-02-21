@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.tasks.api.*;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.tasks.model.Task;
-import site.gutschi.humble.spring.tasks.model.TaskStatus;
+import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
-import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
+import site.gutschi.humble.spring.tasks.usecases.EditTaskUseCase;
+import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
@@ -29,8 +31,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
 
     @Override
     public void edit(EditTaskRequest request) {
-        final var existingTask = taskRepository.findByKey(request.taskKey())
-                .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
+        final var existingTask = getTaskInternal(request.taskKey());
         final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanEditTasksInProject(project);
@@ -47,8 +48,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
 
     @Override
     public void comment(CommentTaskRequest request) {
-        final var existingTask = taskRepository.findByKey(request.taskKey())
-                .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
+        final var existingTask = getTaskInternal(request.taskKey());
         final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -59,9 +59,8 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     }
 
     @Override
-    public void delete(DeleteTaskRequest request) {
-        final var existingTask = taskRepository.findByKey(request.taskKey())
-                .orElseThrow(() -> new TaskNotFoundException(request.taskKey()));
+    public void delete(TaskKey taskKey) {
+        final var existingTask = getTaskInternal(taskKey);
         final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessPolicy.ensureCanDeleteTasksInProject(project);
@@ -73,9 +72,8 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     }
 
     @Override
-    public GetTaskResponse getTaskByKey(String taskKey) {
-        final var existingTask = taskRepository.findByKey(taskKey)
-                .orElseThrow(() -> new TaskNotFoundException(taskKey));
+    public GetTaskResponse getTaskByKey(TaskKey taskKey) {
+        final var existingTask = getTaskInternal(taskKey);
         final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
         notDeletedPolicy.ensureNotDeleted(existingTask);
         final var editable = canAccessPolicy.canEditTasksInProject(project);
@@ -86,7 +84,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public FindTasksResponse findTasks(FindTasksRequest request) {
         final var projects = getProjectUseCase.getAllProjects();
-        final var searchCallerRequest = new SearchCallerRequest(request.query(), request.page(), request.pageSize(), projects);
+        final var searchCallerRequest = new SearchCaller.SearchCallerRequest(request.query(), request.page(), request.pageSize(), projects);
         final var searchCallerResponse = searchCaller.findTasks(searchCallerRequest);
         return new FindTasksResponse(searchCallerResponse.tasks(), projects, searchCallerResponse.total());
     }
@@ -96,15 +94,8 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
         final var project = getProjectUseCase.getProject(request.projectKey()).project();
         canAccessPolicy.ensureCanEditTasksInProject(project);
         projectActivePolicy.ensureProjectIsActive(project);
-        final var task = Task.builder()
-                .id(taskRepository.nextId(request.projectKey()))
-                .projectKey(request.projectKey())
-                .creatorEmail(currentUserApi.currentEmail())
-                .status(TaskStatus.FUNNEL)
-                .title(request.title())
-                .description(request.description())
-                .currentUserApi(currentUserApi)
-                .build();
+        final var nextId = taskRepository.nextId(request.projectKey());
+        final var task = Task.createNew(currentUserApi, request.projectKey(), nextId, request.title(), request.description());
         taskRepository.save(task);
         searchCaller.informUpdatedTasks(task);
         log.info("Task {} created", task.getKey());
@@ -114,5 +105,10 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public Set<Project> getProjectsToCreate() {
         return getProjectUseCase.getAllProjects();
+    }
+
+    private Task getTaskInternal(TaskKey taskKey) {
+        return taskRepository.findByKey(taskKey.toString())
+                .orElseThrow(() -> NotFoundException.notFound("Task", taskKey.toString(), currentUserApi.currentEmail()));
     }
 }

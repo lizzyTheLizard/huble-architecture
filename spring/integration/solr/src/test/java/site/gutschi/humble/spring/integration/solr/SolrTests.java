@@ -9,10 +9,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.tasks.api.FindTasksResponse;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
-import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
+import site.gutschi.humble.spring.tasks.ports.SearchCaller;
+import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class SolrTests {
     void emptyIndex() {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("PRO");
-        final var request = new SearchCallerRequest("test", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("test", 1, 10, List.of(project));
         target.clear();
 
         final var response = target.findTasks(request);
@@ -53,7 +53,7 @@ public class SolrTests {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
-        final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
         target.clear();
         target.informUpdatedTasks(task);
 
@@ -68,7 +68,7 @@ public class SolrTests {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
-        final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
         target.informUpdatedTasks(task);
         target.informDeletedTasks(task);
 
@@ -83,7 +83,7 @@ public class SolrTests {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task = createTask(1);
-        final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
         target.informUpdatedTasks(task);
         target.clear();
 
@@ -98,7 +98,7 @@ public class SolrTests {
         final var project = Mockito.mock(Project.class);
         Mockito.when(project.getKey()).thenReturn("OTHER");
         final var task = createTask(1);
-        final var request = new SearchCallerRequest("PRO-1", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
         target.clear();
         target.informUpdatedTasks(task);
 
@@ -114,7 +114,7 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task1 = createTask(1);
         final var task2 = createTask(2);
-        final var request = new SearchCallerRequest("STR2", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("STR2", 1, 10, List.of(project));
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
@@ -130,7 +130,7 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task1 = createTask(1);
         final var task2 = createTask(2);
-        final var request = new SearchCallerRequest("STR1", 1, 10, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 10, List.of(project));
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
@@ -147,8 +147,8 @@ public class SolrTests {
         Mockito.when(project.getKey()).thenReturn("PRO");
         final var task1 = createTask(1);
         final var task2 = createTask(2);
-        final var request = new SearchCallerRequest("STR1", 1, 1, List.of(project));
-        final var request2 = new SearchCallerRequest("STR1", 2, 1, List.of(project));
+        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 1, List.of(project));
+        final var request2 = new SearchCaller.SearchCallerRequest("STR1", 2, 1, List.of(project));
         target.clear();
         target.informUpdatedTasks(task1, task2);
 
@@ -177,7 +177,7 @@ public class SolrTests {
 
     }
 
-    private FindTasksResponse.TaskFindView toView(Task task) {
-        return new FindTasksResponse.TaskFindView(task.getKey(), task.getTitle(), task.getAssigneeEmail().orElse(null), task.getStatus());
+    private GetTasksUseCase.TaskFindView toView(Task task) {
+        return new GetTasksUseCase.TaskFindView(task.getKey(), task.getTitle(), task.getAssigneeEmail().orElse(null), task.getStatus());
     }
 }

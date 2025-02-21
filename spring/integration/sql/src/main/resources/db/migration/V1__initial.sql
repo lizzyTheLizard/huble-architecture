@@ -69,7 +69,7 @@ create table task_history_entry (
     new_value varchar(255),
     old_value varchar(255),
     timestamp timestamp(6) with time zone not null,
-    type varchar(255) check (type in ('CREATED','COMMENTED','STATUS_CHANGED','TITLE_CHANGED','DESCRIPTION_CHANGED','DELETED','ASSIGNED','ESTIMATED')),
+    type varchar(255) check (type in ('CREATED','COMMENTED','EDITED','DELETED')),
     task_key varchar(255) not null,
     user_email varchar(255) not null,
     primary key (id)

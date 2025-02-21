@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import site.gutschi.humble.spring.tasks.api.CreateTaskUseCase;
+import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
 import site.gutschi.humble.spring.users.usecases.CreateProjectUseCase;
 
 @ControllerAdvice

@@ -23,4 +23,9 @@ public class NotAllowedException extends RuntimeException {
         final var message = String.format("User %s is not allowed to %s %s", currentUser, operation, type);
         return new NotAllowedException(message, message);
     }
+
+    public static RuntimeException projectNotActive(String id) {
+        final var message = String.format("Project '%s' is no longer active", id);
+        return new NotAllowedException(message, message);
+    }
 }

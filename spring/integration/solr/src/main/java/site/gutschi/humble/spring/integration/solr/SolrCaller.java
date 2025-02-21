@@ -12,8 +12,6 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
-import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
-import site.gutschi.humble.spring.tasks.ports.SearchCallerResponse;
 
 import java.util.Arrays;
 import java.util.List;

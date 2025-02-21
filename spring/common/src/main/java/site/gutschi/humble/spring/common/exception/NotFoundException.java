@@ -26,4 +26,9 @@ public class NotFoundException extends RuntimeException {
         return new NotFoundException(publicMessage, internalMessage);
     }
 
+    public static RuntimeException deleted(String type, String id, String currentUser) {
+        final var publicMessage = String.format("%s '%s' does not exist or is not visible for user %s", type, id, currentUser);
+        final var internalMessage = String.format("%s '%s' has been deleted", type, id);
+        return new NotFoundException(publicMessage, internalMessage);
+    }
 }

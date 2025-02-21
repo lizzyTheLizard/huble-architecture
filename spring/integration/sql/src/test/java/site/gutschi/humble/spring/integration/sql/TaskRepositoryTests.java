@@ -67,7 +67,7 @@ public class TaskRepositoryTests {
                 taskBuilder.id(4).deleted(true).build(),
                 taskBuilder.id(5).assigneeEmail(u1.getEmail()).build(),
                 taskBuilder.id(6).comment(new Comment(u1.getEmail(), TimeHelper.now(), "Comment 2")).build(),
-                taskBuilder.id(7).historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.STATUS_CHANGED, "status", "BACKLOG", "IN_PROGRESS")).build()
+                taskBuilder.id(7).historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.EDITED, "Status", "BACKLOG", "IN_PROGRESS")).build()
         );
     }
 
@@ -82,7 +82,7 @@ public class TaskRepositoryTests {
     void saveAndReload(Task task) {
         taskRepository.save(task);
 
-        final var result = taskRepository.findByKey(task.getKey());
+        final var result = taskRepository.findByKey(task.getKey().toString());
         assertThat(result).isPresent();
         assertThat(result.get().getKey()).isEqualTo(task.getKey());
         assertThat(result.get().getCreatorEmail()).isEqualTo(task.getCreatorEmail());

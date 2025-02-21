@@ -57,7 +57,7 @@ class TaskTest {
         assertThat(task.getStatus())
                 .isEqualTo(newStatus);
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.STATUS_CHANGED, null, oldStatus.name(), newStatus.name()));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Status", oldStatus.name(), newStatus.name()));
     }
 
     @Test
@@ -80,7 +80,7 @@ class TaskTest {
         assertThat(task.getTitle())
                 .isEqualTo(newTitle);
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.TITLE_CHANGED, null, null, newTitle));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Title", null, newTitle));
     }
 
     @Test
@@ -104,7 +104,7 @@ class TaskTest {
         assertThat(task.getDescription())
                 .isEqualTo(newDescription);
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.DESCRIPTION_CHANGED, null, null, newDescription));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Description", null, newDescription));
     }
 
     @Test
@@ -138,7 +138,7 @@ class TaskTest {
         assertThat(task.getEstimation())
                 .contains(newEstimation);
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.ESTIMATED, null, null, "5"));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Estimation", null, "5"));
     }
 
     @Test
@@ -161,7 +161,7 @@ class TaskTest {
         assertThat(task.getEstimation())
                 .isEmpty();
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.ESTIMATED, null, "5", null));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Estimation", "5", null));
     }
 
     @Test
@@ -173,7 +173,7 @@ class TaskTest {
         assertThat(task.getAssigneeEmail())
                 .contains(newAssignee);
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.ASSIGNED, null, "Old Assignee", newAssignee));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Assignee", "Old Assignee", newAssignee));
     }
 
     @Test
@@ -186,7 +186,7 @@ class TaskTest {
         assertThat(task.getAssigneeEmail())
                 .isEmpty();
         assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.ASSIGNED, null, newAssignee, null));
+                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Assignee", newAssignee, null));
 
     }
 
