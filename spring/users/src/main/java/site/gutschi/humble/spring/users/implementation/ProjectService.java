@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
-import site.gutschi.humble.spring.users.api.CreateProjectUseCase;
-import site.gutschi.humble.spring.users.api.EditProjectUseCase;
-import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
+import site.gutschi.humble.spring.users.usecases.CreateProjectUseCase;
+import site.gutschi.humble.spring.users.usecases.EditProjectUseCase;
+import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Set;
 import java.util.stream.Collectors;

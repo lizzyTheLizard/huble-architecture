@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * A project in the system. Project are identified by their key and are always created by a system admin.
  * A project can be deactivated, which means it is not editable anymore. A project can have multiple users with different roles.
- * At least on user must be an admin.
+ * At least one user must be an admin.
  */
 public class Project {
     private final CurrentUserApi currentUserApi;

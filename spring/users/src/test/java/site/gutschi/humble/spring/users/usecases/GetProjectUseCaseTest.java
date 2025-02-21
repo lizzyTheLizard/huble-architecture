@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.api;
+package site.gutschi.humble.spring.users.usecases;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

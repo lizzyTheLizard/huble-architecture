@@ -13,11 +13,11 @@ import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerResponse;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
-import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRole;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.List;
 import java.util.Optional;

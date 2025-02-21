@@ -10,8 +10,8 @@ import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.SearchCallerRequest;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
-import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Set;
 

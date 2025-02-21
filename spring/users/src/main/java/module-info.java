@@ -5,7 +5,7 @@ module site.gutschi.humble.spring.users {
     requires org.slf4j;
     requires site.gutschi.humble.spring.common;
     requires org.apache.commons.validator;
-    exports site.gutschi.humble.spring.users.api;
+    exports site.gutschi.humble.spring.users.usecases;
     exports site.gutschi.humble.spring.users.ports;
     exports site.gutschi.humble.spring.users.model;
 }

@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.api;
+package site.gutschi.humble.spring.users.usecases;
 
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
@@ -12,7 +12,6 @@ public interface CreateProjectUseCase {
      * Checks if the user is allowed to create a project, and the input is valid,
      * then creates the project and return it.
      *
-     * @param request The request object
      * @return the created project
      * @throws NotAllowedException   if the user is not allowed to create a project
      * @throws InvalidInputException If the key is not unique

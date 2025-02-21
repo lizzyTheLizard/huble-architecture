@@ -15,12 +15,6 @@ public class CanAccessUserPolicy {
     private final CurrentUserApi currentUserApi;
     private final ProjectRepository projectRepository;
 
-    public void ensureCanEdit(User user) {
-        ensureCanRead(user);
-        if (canEdit(user)) return;
-        throw NotAllowedException.notAllowed("User", user.getEmail(), "edit", currentUserApi.currentEmail());
-    }
-
     public void ensureCanRead(User user) {
         if (canRead(user)) return;
         final var currentUser = currentUserApi.currentEmail();
@@ -35,12 +29,6 @@ public class CanAccessUserPolicy {
         return projectRepository.findAllForUser(user).stream()
                 .flatMap(p -> p.getRole(currentUser).stream())
                 .anyMatch(ProjectRoleType::canRead);
-    }
-
-    private boolean canEdit(User user) {
-        if (currentUserApi.isSystemAdmin()) return true;
-        final var currentUser = currentUserApi.currentEmail();
-        return currentUser.equals(user.getEmail());
     }
 
     public NotFoundException userNotFound(String email) {

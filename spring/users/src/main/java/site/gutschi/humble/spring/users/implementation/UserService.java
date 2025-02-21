@@ -3,15 +3,15 @@ package site.gutschi.humble.spring.users.implementation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import site.gutschi.humble.spring.users.api.EditUserUseCase;
-import site.gutschi.humble.spring.users.api.GetUserUseCase;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.UserRepository;
+import site.gutschi.humble.spring.users.usecases.GetUserUseCase;
+import site.gutschi.humble.spring.users.usecases.UpdateUserUseCase;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements EditUserUseCase, GetUserUseCase {
+public class UserService implements UpdateUserUseCase, GetUserUseCase {
     private final UserRepository userRepository;
     private final CanAccessUserPolicy canAccessUserPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
@@ -47,15 +47,4 @@ public class UserService implements EditUserUseCase, GetUserUseCase {
         }
         return user;
     }
-
-    @Override
-    public void editUser(EditUserRequest request) {
-        final var user = getUser(request.email());
-        canAccessUserPolicy.ensureCanEdit(user);
-        user.setName(request.name());
-        userValidPolicy.ensureUserValid(user);
-        userRepository.save(user);
-        log.info("User {} edited", user.getEmail());
-    }
-
 }

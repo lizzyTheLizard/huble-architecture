@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.api;
+package site.gutschi.humble.spring.users.usecases;
 
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
@@ -10,11 +10,11 @@ public interface GetProjectUseCase {
     /**
      * Get a project by its key
      * <p>
-     * Checks if the user is allowed to manage the project, then returns the project.
+     * Checks if the user is allowed to view the project, then returns the project.
      *
      * @param projectKey The key of the project to get
-     * @return The project and if the user is allowed to manage the project.
-     * @throws NotFoundException if the project does not exist or is invisible to the user.
+     * @return The project and extra information
+     * @throws NotFoundException If the project does not exist or is invisible to the user.
      */
     GetProjectResponse getProject(String projectKey);
 

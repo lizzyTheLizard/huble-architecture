@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
-import site.gutschi.humble.spring.users.api.CreateProjectUseCase;
-import site.gutschi.humble.spring.users.api.EditProjectUseCase;
-import site.gutschi.humble.spring.users.api.GetProjectUseCase;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
+import site.gutschi.humble.spring.users.usecases.CreateProjectUseCase;
+import site.gutschi.humble.spring.users.usecases.EditProjectUseCase;
+import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Arrays;
 import java.util.Map;

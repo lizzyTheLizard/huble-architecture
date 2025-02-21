@@ -9,8 +9,6 @@ import java.util.Set;
 public interface ProjectRepository {
     /**
      * Save a changed or new project
-     *
-     * @param project The project to save
      */
     void save(Project project);
 

@@ -1,5 +1,7 @@
-package site.gutschi.humble.spring.users.api;
+package site.gutschi.humble.spring.users.usecases;
 
+import site.gutschi.humble.spring.common.exception.InvalidInputException;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
@@ -11,9 +13,9 @@ public interface EditProjectUseCase {
      * <p>
      * Checks if the project exists, and the user has the right to edit the project. Then updates the project.
      *
-     * @param request The request to edit the project
-     * @throws NotFoundException        if the project does not exist or is invisible to the user.
-     * @throws IllegalArgumentException if the input is not valid
+     * @throws NotFoundException     If the project does not exist or is invisible to the user.
+     * @throws NotAllowedException   If the project is visible, but the user is not allowed to edit it.
+     * @throws InvalidInputException If the input is not valid.
      */
     void editProject(EditProjectRequest request);
 
@@ -22,8 +24,8 @@ public interface EditProjectUseCase {
      * <p>
      * Checks if the project and user exists, and the user has the right to edit the project. Then assigns the user to the project.
      *
-     * @param request The request to assign the user
-     * @throws NotFoundException if the project or user does not exist or is invisible to the user.
+     * @throws NotFoundException   If the project or user does not exist or is invisible to the user.
+     * @throws NotAllowedException If the project is visible, but the user is not allowed to edit it.
      */
     void assignUser(AssignUserRequest request);
 
@@ -32,8 +34,8 @@ public interface EditProjectUseCase {
      * <p>
      * Checks if the project and user exists, and the user has the right to edit the project. Then unassigns the user from the project.
      *
-     * @param request The request to unassign the user
-     * @throws NotFoundException if the project or user does not exist or is invisible to the user.
+     * @throws NotFoundException   If the project or user does not exist or is invisible to the user.
+     * @throws NotAllowedException If the project is visible, but the user is not allowed to edit it.
      */
     void unAssignUser(UnAssignUserRequest request);
 
