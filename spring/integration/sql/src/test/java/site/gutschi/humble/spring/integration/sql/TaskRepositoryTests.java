@@ -15,6 +15,8 @@ import site.gutschi.humble.spring.common.helper.TimeHelper;
 import site.gutschi.humble.spring.tasks.model.*;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.ProjectRole;
+import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
@@ -120,5 +122,32 @@ public class TaskRepositoryTests {
         final var result = taskRepository.nextId(p1.getKey());
 
         assertThat(result).isEqualTo(old + 1);
+    }
+
+    @Test
+    void findByProject() {
+        final var p2 = Project.builder()
+                .key("FFU2")
+                .name("Find All 2")
+                .projectRole(new ProjectRole(u1, ProjectRoleType.STAKEHOLDER))
+                .build();
+        projectRepository.save(p2);
+        final var task = Task.builder()
+                .projectKey(p2.getKey())
+                .creatorEmail(u1.getEmail())
+                .title("Task 1")
+                .description("Description 1")
+                .status(TaskStatus.BACKLOG)
+                .deleted(false)
+                .comment(new Comment(u1.getEmail(), TimeHelper.now(), "Comment 1"))
+                .historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.CREATED, null, null, null))
+                .build();
+        taskRepository.save(task);
+
+        final var result = taskRepository.findByProject(p2);
+        assertThat(result).allMatch(t -> t.getKey().equals(task.getKey()));
+
+        final var result2 = taskRepository.findByProject(p1);
+        assertThat(result2).noneMatch(t -> t.getKey().equals(task.getKey()));
     }
 }

@@ -1,8 +1,8 @@
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework:spring-context'
     implementation project(":common")
-    implementation project(":users")
     implementation project(":tasks")
-    implementation project(":billing")
+    implementation project(":users")
+    compileOnly 'org.slf4j:slf4j-api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

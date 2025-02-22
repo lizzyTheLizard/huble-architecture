@@ -3,8 +3,10 @@ package site.gutschi.humble.spring.integration.inmemory;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class InMemoryTaskRepository implements TaskRepository {
@@ -29,5 +31,12 @@ public class InMemoryTaskRepository implements TaskRepository {
         final var next = nextId.getOrDefault(projectKey, 1);
         nextId.put(projectKey, next + 1);
         return next;
+    }
+
+    @Override
+    public Set<Task> findByProject(Project project) {
+        return tasks.stream()
+                .filter(task -> task.getProjectKey().equals(project.getKey()))
+                .collect(Collectors.toSet());
     }
 }

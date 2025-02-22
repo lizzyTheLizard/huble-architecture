@@ -5,6 +5,7 @@ module site.gutschi.humble.spring.integration.sql {
     requires spring.context;
     requires site.gutschi.humble.spring.users;
     requires site.gutschi.humble.spring.tasks;
+    requires site.gutschi.humble.spring.billing;
     requires spring.data.jpa;
     requires jakarta.persistence;
     requires jakarta.validation;

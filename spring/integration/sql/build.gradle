@@ -6,6 +6,7 @@ dependencies {
     implementation project(":common")
     implementation project(":users")
     implementation project(":tasks")
+    implementation project(":billing")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'

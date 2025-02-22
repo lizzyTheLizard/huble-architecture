@@ -1,5 +1,4 @@
-module site.gutschi.humble.spring.integration.inmemory {
-    requires jakarta.annotation;
+module site.gutschi.humble.spring.billing {
     requires lombok;
     //noinspection Java9RedundantRequiresStatement used for lombok
     requires org.slf4j;
@@ -7,5 +6,8 @@ module site.gutschi.humble.spring.integration.inmemory {
     requires site.gutschi.humble.spring.common;
     requires site.gutschi.humble.spring.users;
     requires site.gutschi.humble.spring.tasks;
-    requires site.gutschi.humble.spring.billing;
+    requires spring.beans;
+    exports site.gutschi.humble.spring.billing.usecases;
+    exports site.gutschi.humble.spring.billing.ports;
+    exports site.gutschi.humble.spring.billing.model;
 }

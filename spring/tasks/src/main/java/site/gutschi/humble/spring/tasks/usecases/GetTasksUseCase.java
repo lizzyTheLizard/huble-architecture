@@ -9,6 +9,7 @@ import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.Collection;
+import java.util.Set;
 
 public interface GetTasksUseCase {
     /**
@@ -25,6 +26,8 @@ public interface GetTasksUseCase {
      */
     FindTasksResponse findTasks(FindTasksRequest request);
 
+    GetTasksForProjectResponse getTasksForProject(String projectKey);
+
     /**
      * @param task      The task itself
      * @param editable  Is the task editable by the current user?
@@ -32,6 +35,15 @@ public interface GetTasksUseCase {
      * @param project   The project of the task
      */
     record GetTaskResponse(Task task, boolean editable, boolean deletable, Project project) {
+    }
+
+    /**
+     * @param tasks     The tasks itself
+     * @param editable  Is the task editable by the current user?
+     * @param deletable Is the task deletable by the current user?
+     * @param project   The project of the task
+     */
+    record GetTasksForProjectResponse(Set<Task> tasks, boolean editable, boolean deletable, Project project) {
     }
 
     /**

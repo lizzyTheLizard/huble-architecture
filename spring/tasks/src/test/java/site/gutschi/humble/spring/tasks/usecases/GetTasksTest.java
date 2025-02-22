@@ -51,7 +51,7 @@ class GetTasksTest {
         currentUser = new User("dev@example.com", "Hans");
         testProject = Project.createNew("PRO", "Test", currentUser, currentUserApi);
     }
-
+    
     @Nested
     class FindTask {
         private GetTasksUseCase.TaskFindView taskView;
@@ -126,4 +126,42 @@ class GetTasksTest {
             assertThat(result.project()).isEqualTo(testProject);
         }
     }
+
+    @Nested
+    class GetTaskForProject {
+        private Task existingTask;
+
+        @BeforeEach
+        void setup() {
+            existingTask = Task.createNew(currentUserApi, testProject.getKey(), 13, "Test", "Test");
+            Mockito.when(taskRepository.findByProject(testProject)).thenReturn(Set.of(existingTask));
+            Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+            final var getProjectResponse = new GetProjectUseCase.GetProjectResponse(testProject, true);
+            Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(getProjectResponse);
+        }
+
+        @Test
+        void readOnly() {
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            final var result = target.getTasksForProject(testProject.getKey());
+
+            assertThat(result.tasks()).singleElement().isEqualTo(existingTask);
+            assertThat(result.deletable()).isEqualTo(false);
+            assertThat(result.editable()).isEqualTo(false);
+            assertThat(result.project()).isEqualTo(testProject);
+        }
+
+        @Test
+        void getTasks() {
+            final var result = target.getTasksForProject(testProject.getKey());
+
+            assertThat(result.tasks()).singleElement().isEqualTo(existingTask);
+            assertThat(result.deletable()).isEqualTo(true);
+            assertThat(result.editable()).isEqualTo(true);
+            assertThat(result.project()).isEqualTo(testProject);
+        }
+    }
+
+
 }

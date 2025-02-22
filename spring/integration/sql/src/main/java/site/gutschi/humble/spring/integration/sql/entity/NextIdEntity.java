@@ -12,6 +12,6 @@ import lombok.Setter;
 public class NextIdEntity {
     @Id
     @NotBlank
-    private String projectKey;
+    private String name;
     private int nextId;
 }

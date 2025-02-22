@@ -1,8 +1,10 @@
 package site.gutschi.humble.spring.tasks.ports;
 
 import site.gutschi.humble.spring.tasks.model.Task;
+import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface TaskRepository {
     /**
@@ -27,4 +29,12 @@ public interface TaskRepository {
      * @return The next ID
      */
     int nextId(String projectKey);
+
+    /**
+     * Find all tasks in a project
+     *
+     * @param project The project
+     * @return The tasks in the project
+     */
+    Set<Task> findByProject(Project project);
 }

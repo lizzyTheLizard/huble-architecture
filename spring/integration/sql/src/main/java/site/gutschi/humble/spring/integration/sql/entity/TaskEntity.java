@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import site.gutschi.humble.spring.integration.sql.repo.ProjectEntityRepository;
 import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
@@ -18,6 +19,8 @@ import java.util.stream.Collectors;
 public class TaskEntity {
     @Id
     private String key;
+    @ManyToOne
+    private ProjectEntity project;
     @ManyToOne
     private UserEntity creator;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "task")
@@ -35,21 +38,22 @@ public class TaskEntity {
     private UserEntity assignee;
     private boolean deleted;
 
-    public static TaskEntity fromModel(Task task, UserEntityRepository repository) {
+    public static TaskEntity fromModel(Task task, UserEntityRepository userEntityRepository, ProjectEntityRepository projectEntityRepository) {
         final var entity = new TaskEntity();
+        entity.setProject(projectEntityRepository.getReferenceById(task.getProjectKey()));
         entity.setKey(task.getKey().toString());
-        entity.setCreator(repository.getReferenceById(task.getCreatorEmail()));
+        entity.setCreator(userEntityRepository.getReferenceById(task.getCreatorEmail()));
         entity.setComments(task.getComments().stream()
-                .map(c -> CommentEntity.fromModel(c, entity, repository))
+                .map(c -> CommentEntity.fromModel(c, entity, userEntityRepository))
                 .collect(Collectors.toSet()));
         entity.setHistoryEntries(task.getHistoryEntries().stream()
-                .map(h -> TaskHistoryEntryEntity.fromModel(h, entity, repository))
+                .map(h -> TaskHistoryEntryEntity.fromModel(h, entity, userEntityRepository))
                 .collect(Collectors.toSet()));
         entity.setEstimation(task.getEstimation().orElse(null));
         entity.setStatus(task.getStatus());
         entity.setTitle(task.getTitle());
         entity.setDescription(task.getDescription());
-        entity.setAssignee(task.getAssigneeEmail().map(repository::getReferenceById).orElse(null));
+        entity.setAssignee(task.getAssigneeEmail().map(userEntityRepository::getReferenceById).orElse(null));
         entity.setDeleted(task.isDeleted());
         return entity;
     }

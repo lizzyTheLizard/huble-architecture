@@ -90,6 +90,15 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     }
 
     @Override
+    public GetTasksForProjectResponse getTasksForProject(String projectKey) {
+        final var project = getProjectUseCase.getProject(projectKey).project();
+        final var tasks = taskRepository.findByProject(project);
+        final var editable = canAccessPolicy.canEditTasksInProject(project);
+        final var deletable = canAccessPolicy.canDeleteTasksInProject(project);
+        return new GetTasksForProjectResponse(tasks, editable, deletable, project);
+    }
+
+    @Override
     public Task create(CreateTaskRequest request) {
         final var project = getProjectUseCase.getProject(request.projectKey()).project();
         canAccessPolicy.ensureCanEditTasksInProject(project);
