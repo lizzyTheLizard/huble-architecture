@@ -11,19 +11,19 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-//TODO: Testing
+//TODO BILLING: Test JpaBillingPeriodRepository
 public class JpaBillingPeriodRepository implements BillingPeriodRepository {
     private final BillingPeriodEntityRepository billingPeriodEntityRepository;
 
     @Override
     public Optional<BillingPeriod> getLatestBillingPeriod() {
-        return billingPeriodEntityRepository.findTopByOrderByBillingPeriodStartDesc()
+        return billingPeriodEntityRepository.findTopByOrderByStartDesc()
                 .map(BillingPeriodEntity::toModel);
     }
 
     @Override
-    public void save(BillingPeriod billingPeriod) {
+    public BillingPeriod save(BillingPeriod billingPeriod) {
         final var entity = BillingPeriodEntity.fromModel(billingPeriod);
-        billingPeriodEntityRepository.save(entity);
+        return billingPeriodEntityRepository.save(entity).toModel();
     }
 }

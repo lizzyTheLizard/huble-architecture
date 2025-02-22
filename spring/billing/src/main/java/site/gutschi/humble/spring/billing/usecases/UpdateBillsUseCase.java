@@ -1,7 +1,6 @@
 package site.gutschi.humble.spring.billing.usecases;
 
-//TODO: Document
-//TODO: Test
+//TODO BILLING: Document and Test UpdateBillsUseCase
 public interface UpdateBillsUseCase {
     void updateBills();
 }

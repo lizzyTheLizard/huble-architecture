@@ -6,15 +6,25 @@ import site.gutschi.humble.spring.users.model.Project;
 import java.util.Optional;
 import java.util.Set;
 
-//TODO: Document
 public interface CostCenterRepository {
+    /**
+     * Returns the cost center with the given ID or empty if no cost center exists.
+     */
     Optional<CostCenter> findById(int id);
 
-    void save(CostCenter costCenter);
+    /**
+     * Saves a new cost center and returns the saved cost center.
+     */
+    //TODO BILLING: Use return value
+    CostCenter save(CostCenter costCenter);
 
+    /**
+     * Returns all cost centers.
+     */
     Set<CostCenter> findAll();
 
-    int getNextId();
-
+    /**
+     * Returns the cost center for the given project or empty if no cost center exists.
+     */
     Optional<CostCenter> findByProject(Project project);
 }

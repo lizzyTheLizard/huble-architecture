@@ -4,8 +4,7 @@ import site.gutschi.humble.spring.billing.model.CostCenter;
 
 import java.util.List;
 
-//TODO: Document
-//TODO: Test
+//TODO BILLING: Document and Test EditCostCenterUseCase
 public interface EditCostCenterUseCase {
     void editCostCenter(EditCostCenterRequest request);
 

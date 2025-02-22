@@ -7,7 +7,7 @@ import site.gutschi.humble.spring.common.exception.NotAllowedException;
 
 @Service
 @RequiredArgsConstructor
-public class CanAccessPolicy {
+public class CanAccessBillingPolicy {
     private final CurrentUserApi currentUserApi;
 
     public void ensureCanAccessBilling() {

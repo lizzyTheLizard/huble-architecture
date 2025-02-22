@@ -11,4 +11,5 @@ public class TestApplication {
     public SearchCaller searchCaller() {
         return Mockito.mock(SearchCaller.class);
     }
+
 }

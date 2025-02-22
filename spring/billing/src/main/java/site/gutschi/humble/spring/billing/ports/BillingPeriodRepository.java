@@ -4,9 +4,14 @@ import site.gutschi.humble.spring.billing.model.BillingPeriod;
 
 import java.util.Optional;
 
-//TODO: Document
 public interface BillingPeriodRepository {
+    /**
+     * Returns the newest billing period. Returns empty if no billing period exists.
+     */
     Optional<BillingPeriod> getLatestBillingPeriod();
 
-    void save(BillingPeriod newBillingPeriod);
+    /**
+     * Saves a new billing period and returns the saved billing period.
+     */
+    BillingPeriod save(BillingPeriod newBillingPeriod);
 }

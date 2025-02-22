@@ -1,6 +1,8 @@
 package site.gutschi.humble.spring.integration.sql.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,8 +16,10 @@ import java.time.LocalDate;
 @Entity(name = "billingPeriod")
 public class BillingPeriodEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     @NotNull
-    private LocalDate billingPeriodStart;
+    private LocalDate start;
     @NotNull
     private LocalDate dueDate;
     @NotNull
@@ -23,13 +27,14 @@ public class BillingPeriodEntity {
 
     public static BillingPeriodEntity fromModel(BillingPeriod billingPeriod) {
         final var entity = new BillingPeriodEntity();
-        entity.setBillingPeriodStart(billingPeriod.getBillingPeriodStart());
-        entity.setDueDate(billingPeriod.getDueDate());
-        entity.setCreatedDate(billingPeriod.getCreatedDate());
+        entity.setId(billingPeriod.id());
+        entity.setStart(billingPeriod.start());
+        entity.setDueDate(billingPeriod.dueDate());
+        entity.setCreatedDate(billingPeriod.createdDate());
         return entity;
     }
 
     public BillingPeriod toModel() {
-        return new BillingPeriod(billingPeriodStart, dueDate, createdDate);
+        return new BillingPeriod(id, start, dueDate, createdDate);
     }
 }

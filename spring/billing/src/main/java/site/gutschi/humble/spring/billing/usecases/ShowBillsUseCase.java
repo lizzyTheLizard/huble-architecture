@@ -1,15 +1,16 @@
 package site.gutschi.humble.spring.billing.usecases;
 
 import site.gutschi.humble.spring.billing.model.Bill;
+import site.gutschi.humble.spring.billing.model.BillingPeriod;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 
-import java.time.LocalDate;
 import java.util.Set;
 
-//TODO: Document
-//TODO: Test
+//TODO BILLING: Document and Test ShowBillsUseCase
 public interface ShowBillsUseCase {
-    Set<Bill> getAllForPeriod(LocalDate start);
+    Set<BillingPeriod> getAllBillingPeriods();
+
+    Set<Bill> getAllForPeriod(int billingPeriodId);
 
     Set<Bill> getAllForCostCenter(int costCenterId);
 

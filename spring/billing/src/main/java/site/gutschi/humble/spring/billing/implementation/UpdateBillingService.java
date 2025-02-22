@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.billing.model.Bill;
 import site.gutschi.humble.spring.billing.model.BillingPeriod;
+import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.model.ProjectBill;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UpdateBillingService implements UpdateBillsUseCase {
     private final BillRepository billRepository;
-    private final CanAccessPolicy canAccessPolicy;
+    private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
     private final GetTasksUseCase getTasksUseCase;
     private final BillingConfiguration billingConfiguration;
@@ -35,69 +36,71 @@ public class UpdateBillingService implements UpdateBillsUseCase {
 
     @Override
     public void updateBills() {
-        canAccessPolicy.ensureCanAccessBilling();
-        final var firstStart = getFirstStart();
+        canAccessBillingPolicy.ensureCanAccessBilling();
         final var lastStartExclusive = getLastStartExclusive();
-        final var today = TimeHelper.today();
-        final var dueDate = today.plusDays(30);
-        for (var start = firstStart; start.isBefore(lastStartExclusive); start = start.plusMonths(1)) {
+        for (var start = getFirstStart(); start.isBefore(lastStartExclusive); start = start.plusMonths(1)) {
+            final var billingPeriod = createNewBillingPeriod(start);
             for (var costCenter : costCenterRepository.findAll()) {
-                final var finalStart = start;
-                final var projectBills = costCenter.getProjects().stream()
-                        .filter(p -> wasActive(p, finalStart))
-                        .map(p -> createProjectBill(p, finalStart))
-                        .collect(Collectors.toSet());
-                final var id = billRepository.nextId();
-                final var bill = new Bill(id, costCenter, start, dueDate, today, projectBills);
-                billRepository.save(bill);
+                createNewBill(costCenter, billingPeriod);
             }
-            final var newBillingPeriod = new BillingPeriod(start, dueDate, today);
-            billingPeriodRepository.save(newBillingPeriod);
         }
     }
 
     private LocalDate getFirstStart() {
         return billingPeriodRepository.getLatestBillingPeriod()
-                .map(BillingPeriod::getBillingPeriodStart)
+                .map(BillingPeriod::start)
+                .map(start -> start.plusMonths(1))
                 .orElse(TimeHelper.today().withDayOfMonth(1).minusMonths(1));
-
     }
 
     private LocalDate getLastStartExclusive() {
         return TimeHelper.today().withDayOfMonth(1);
     }
 
-    private boolean wasActive(Project project, LocalDate start) {
+    private BillingPeriod createNewBillingPeriod(LocalDate start) {
+        final var today = TimeHelper.today();
+        final var dueDate = today.plusDays(30);
+        final var newBillingPeriod = new BillingPeriod(null, start, dueDate, today);
+        return billingPeriodRepository.save(newBillingPeriod);
+    }
+
+    private void createNewBill(CostCenter costCenter, BillingPeriod billingPeriod) {
+        final var projectBills = costCenter.getProjects().stream()
+                .filter(p -> wasActive(p, billingPeriod))
+                .map(p -> createProjectBill(p, billingPeriod))
+                .collect(Collectors.toSet());
+        final var bill = new Bill(null, costCenter, billingPeriod, projectBills);
+        billRepository.save(bill);
+    }
+
+    private boolean wasActive(Project project, BillingPeriod billingPeriod) {
+        final var createdDate = getCreatedDate(project);
+        if (!billingPeriod.isInOrBefore(createdDate)) return false;
         if (project.isActive()) return true;
-        final var end = start.plusMonths(1);
         return project.getHistoryEntries().stream()
-                .filter(e -> !TimeHelper.dateOf(e.timestamp()).isBefore(start))
-                .filter(e -> !TimeHelper.dateOf(e.timestamp()).isAfter(end))
+                .filter(e -> billingPeriod.isIn(TimeHelper.dateOf(e.timestamp())))
                 .anyMatch(e -> e.type() == ProjectHistoryType.ACTIVATE_CHANGED);
     }
 
-    private ProjectBill createProjectBill(Project project, LocalDate start) {
-        final var totalTasks = countTotalTasks(project, start);
-        final var createdTasks = countCreatedTasks(project, start);
+    private ProjectBill createProjectBill(Project project, BillingPeriod billingPeriod) {
+        final var totalTasks = countTotalTasks(project, billingPeriod);
+        final var createdTasks = countCreatedTasks(project, billingPeriod);
         final var costTasks = billingConfiguration.getCostsPerTask().multiply(BigDecimal.valueOf(totalTasks));
         final var costCreated = billingConfiguration.getCostsPerCreatedTask().multiply(BigDecimal.valueOf(createdTasks));
         final var amount = costCreated.add(costTasks).round(new MathContext(2));
         return new ProjectBill(project, amount, totalTasks, createdTasks);
     }
 
-    private int countTotalTasks(Project project, LocalDate start) {
-        final var end = start.plusMonths(1);
-        return (int) getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
-                .filter(t -> !getCreatedDate(t).isAfter(end))
-                .filter(t -> !start.isAfter(getDeletedDate(t)))
+    private long countTotalTasks(Project project, BillingPeriod billingPeriod) {
+        return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
+                .filter(t -> billingPeriod.isInOrBefore(getCreatedDate(t)))
+                .filter(t -> !billingPeriod.isIn(getDeletedDate(t)))
                 .count();
     }
 
-    private int countCreatedTasks(Project project, LocalDate start) {
-        final var end = start.plusMonths(1);
-        return (int) getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
-                .filter(t -> !getCreatedDate(t).isAfter(end))
-                .filter(t -> !start.isAfter(getCreatedDate(t)))
+    private long countCreatedTasks(Project project, BillingPeriod billingPeriod) {
+        return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
+                .filter(t -> !billingPeriod.isIn(getCreatedDate(t)))
                 .count();
     }
 
@@ -107,6 +110,17 @@ public class UpdateBillingService implements UpdateBillsUseCase {
                 .findFirst();
         if (createdEntry.isEmpty()) {
             log.warn("Task '{}' has no CREATED date", t.getKey());
+            return LocalDate.MIN;
+        }
+        return TimeHelper.dateOf(createdEntry.get().timestamp());
+    }
+
+    private LocalDate getCreatedDate(Project p) {
+        final var createdEntry = p.getHistoryEntries().stream()
+                .filter(e -> e.type().equals(ProjectHistoryType.CREATED))
+                .findFirst();
+        if (createdEntry.isEmpty()) {
+            log.warn("Project '{}' has no CREATED date", p.getKey());
             return LocalDate.MIN;
         }
         return TimeHelper.dateOf(createdEntry.get().timestamp());

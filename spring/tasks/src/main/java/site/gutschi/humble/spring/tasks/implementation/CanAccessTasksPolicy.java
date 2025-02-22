@@ -9,7 +9,7 @@ import site.gutschi.humble.spring.users.model.ProjectRoleType;
 
 @Service
 @RequiredArgsConstructor
-public class CanAccessPolicy {
+public class CanAccessTasksPolicy {
     private final CurrentUserApi currentUserApi;
 
     public void ensureCanDeleteTasksInProject(Project project) {

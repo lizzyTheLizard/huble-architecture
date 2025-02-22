@@ -6,62 +6,74 @@ import lombok.Setter;
 import lombok.Singular;
 import site.gutschi.humble.spring.users.model.Project;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-//TODO: Document
+/**
+ * A cost center is the billing address for a set of projects.
+ */
+@Getter
+@Setter
 public class CostCenter {
-    @Getter
-    private final int id;
-    private final Set<Project> projects;
-    private final List<String> address;
-    @Getter
-    @Setter
+    /**
+     * The unique identifier of the cost center. Is null before the cost center is persisted.
+     */
+    private final Integer id;
+    /**
+     * The billing address of the cost center including the name of the cost center.
+     */
+    private List<String> address;
+    /**
+     * Projects that are assigned to this cost center.
+     */
+    private Set<Project> projects;
+    /**
+     * The name of the cost center.
+     */
     private String name;
-    @Getter
-    @Setter
+    /**
+     * The email address of the cost center.
+     */
     private String email;
-    @Getter
-    @Setter
-    private boolean active;
+    /**
+     * Is this cost center deleted?
+     */
+    private boolean deleted;
 
     @Builder
-    public CostCenter(int id, String name, List<String> address, String email, boolean active, @Singular Set<Project> projects) {
+    public CostCenter(Integer id, String name, List<String> address, String email, boolean deleted, @Singular Set<Project> projects) {
         this.id = id;
         this.name = name;
-        this.address = new ArrayList<>(address);
+        this.address = Collections.unmodifiableList(address);
         this.email = email;
-        this.active = active;
-        this.projects = new HashSet<>(projects);
+        this.deleted = deleted;
+        this.projects = Collections.unmodifiableSet(projects);
     }
 
-    public static CostCenter create(int id, String name, List<String> address, String email) {
-        return CostCenter.builder()
-                .id(id)
-                .name(name)
-                .address(address)
-                .email(email)
-                .active(true)
-                .build();
-    }
-
-    public Set<Project> getProjects() {
-        return Collections.unmodifiableSet(projects);
-    }
-
+    /**
+     * Add a project to the cost center.
+     */
     public void addProject(Project project) {
-        projects.add(project);
+        projects = Stream.concat(projects.stream(), Stream.of(project))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
+    /**
+     * Remove a project from the cost center. Ignored if the project is not assigned to the cost center.
+     */
     public void removeProject(Project project) {
-        projects.remove(project);
+        projects = projects.stream()
+                .filter(p -> !p.equals(project))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
-    public List<String> getAddress() {
-        return Collections.unmodifiableList(address);
-    }
-
+    /**
+     * The billing address of the cost center including the name of the cost center.
+     */
     public void setAddress(List<String> address) {
-        this.address.clear();
-        this.address.addAll(address);
+        this.address = Collections.unmodifiableList(address);
     }
 }

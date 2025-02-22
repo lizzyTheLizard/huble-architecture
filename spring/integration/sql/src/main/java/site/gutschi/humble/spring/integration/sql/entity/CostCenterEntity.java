@@ -16,12 +16,13 @@ import java.util.stream.Collectors;
 @Entity(name = "costCenter")
 public class CostCenterEntity {
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     @NotBlank
     private String name;
     @NotBlank
     private String email;
-    private boolean active;
+    private boolean deleted;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> address;
     @OneToMany(fetch = FetchType.EAGER)
@@ -30,7 +31,7 @@ public class CostCenterEntity {
     public static CostCenterEntity fromModel(CostCenter costCenter) {
         final var entity = new CostCenterEntity();
         entity.setId(costCenter.getId());
-        entity.setActive(costCenter.isActive());
+        entity.setDeleted(costCenter.isDeleted());
         entity.setEmail(costCenter.getEmail());
         entity.setName(costCenter.getName());
         return entity;
@@ -41,6 +42,6 @@ public class CostCenterEntity {
         final var projects = this.projects.stream()
                 .map(ProjectEntity::toModel)
                 .collect(Collectors.toSet());
-        return new CostCenter(id, name, address, email, active, projects);
+        return new CostCenter(id, name, address, email, deleted, projects);
     }
 }

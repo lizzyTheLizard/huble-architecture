@@ -15,12 +15,20 @@ public class InMemoryBillingPeriodRepository implements BillingPeriodRepository 
     @Override
     public Optional<BillingPeriod> getLatestBillingPeriod() {
         return billingPeriods.stream()
-                .max((a, b) -> b.getBillingPeriodStart().compareTo(a.getBillingPeriodStart()));
+                .max((a, b) -> b.start().compareTo(a.start()));
     }
 
     @Override
-    public void save(BillingPeriod newBillingPeriod) {
-        billingPeriods.removeIf(billingPeriod -> billingPeriod.getBillingPeriodStart().equals(newBillingPeriod.getBillingPeriodStart()));
-        billingPeriods.add(newBillingPeriod);
+    public BillingPeriod save(BillingPeriod newBillingPeriod) {
+        if (newBillingPeriod.id() != null)
+            billingPeriods.removeIf(billingPeriod -> billingPeriod.id().equals(newBillingPeriod.id()));
+        final var result = new BillingPeriod(
+                newBillingPeriod.id() != null ? newBillingPeriod.id() : billingPeriods.size() + 1,
+                newBillingPeriod.start(),
+                newBillingPeriod.dueDate(),
+                newBillingPeriod.createdDate()
+        );
+        billingPeriods.add(result);
+        return result;
     }
 }

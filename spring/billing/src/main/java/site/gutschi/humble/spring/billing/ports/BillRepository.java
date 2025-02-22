@@ -1,18 +1,22 @@
 package site.gutschi.humble.spring.billing.ports;
 
 import site.gutschi.humble.spring.billing.model.Bill;
-import site.gutschi.humble.spring.billing.model.CostCenter;
 
-import java.time.LocalDate;
 import java.util.Set;
 
-//TODO: Document
 public interface BillRepository {
-    Set<Bill> findAllForPeriod(LocalDate start);
+    /**
+     * Returns all bills for a given period.
+     */
+    Set<Bill> findAllForPeriod(int billingPeriodId);
 
-    Set<Bill> findAllForCostCenter(CostCenter costCenter);
-    
+    /**
+     * Returns all bills for a given cost center.
+     */
+    Set<Bill> findAllForCostCenter(int costCenterId);
+
+    /**
+     * Saves a new bill and returns the saved bill.
+     */
     void save(Bill bill);
-
-    int nextId();
 }

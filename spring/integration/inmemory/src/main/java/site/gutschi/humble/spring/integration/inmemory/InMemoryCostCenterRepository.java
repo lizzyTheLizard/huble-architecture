@@ -13,7 +13,7 @@ import java.util.Set;
 @Service
 public class InMemoryCostCenterRepository implements CostCenterRepository {
     private final Set<CostCenter> costCenters = new HashSet<>();
-    private int nextId = 0;
+    private int nextId = 1;
 
     @Override
     public Optional<CostCenter> findById(int id) {
@@ -23,21 +23,24 @@ public class InMemoryCostCenterRepository implements CostCenterRepository {
     }
 
     @Override
-    public void save(CostCenter costCenter) {
-        costCenters.removeIf(c -> c.getId() == costCenter.getId());
-        costCenters.add(costCenter);
+    public CostCenter save(CostCenter costCenter) {
+        if (costCenter.getId() != null)
+            costCenters.removeIf(c -> c.getId().equals(costCenter.getId()));
+        final var result = new CostCenter(
+                costCenter.getId() != null ? costCenter.getId() : nextId++,
+                costCenter.getName(),
+                costCenter.getAddress(),
+                costCenter.getEmail(),
+                costCenter.isDeleted(),
+                costCenter.getProjects()
+        );
+        costCenters.add(result);
+        return result;
     }
 
     @Override
     public Set<CostCenter> findAll() {
         return Collections.unmodifiableSet(costCenters);
-    }
-
-    @Override
-    public int getNextId() {
-        final var result = nextId;
-        nextId++;
-        return result;
     }
 
     @Override

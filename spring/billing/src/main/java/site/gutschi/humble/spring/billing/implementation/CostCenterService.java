@@ -13,15 +13,15 @@ import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class UseCenterService implements EditCostCenterUseCase {
-    private final CanAccessPolicy canAccessPolicy;
+public class CostCenterService implements EditCostCenterUseCase {
+    private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
     private final CurrentUserApi currentUserApi;
     private final GetProjectUseCase getProjectUseCase;
 
     @Override
     public void editCostCenter(EditCostCenterRequest request) {
-        canAccessPolicy.ensureCanAccessBilling();
+        canAccessBillingPolicy.ensureCanAccessBilling();
         final var costCenter = costCenterRepository.findById(request.costCenterId())
                 .orElseThrow(() -> NotFoundException.notFound("CostCenter", String.valueOf(request.costCenterId()), currentUserApi.currentEmail()));
         costCenter.setName(request.name());
@@ -33,9 +33,12 @@ public class UseCenterService implements EditCostCenterUseCase {
 
     @Override
     public CostCenter createCostCenter(CreateCostCenterRequest request) {
-        canAccessPolicy.ensureCanAccessBilling();
-        final var id = costCenterRepository.getNextId();
-        final var costCenter = CostCenter.create(id, request.name(), request.address(), request.email());
+        canAccessBillingPolicy.ensureCanAccessBilling();
+        final var costCenter = CostCenter.builder()
+                .name(request.name())
+                .address(request.address())
+                .email(request.email())
+                .build();
         costCenterRepository.save(costCenter);
         log.info("Cost center {} created by {}", costCenter.getId(), currentUserApi.currentEmail());
         return costCenter;
@@ -43,17 +46,17 @@ public class UseCenterService implements EditCostCenterUseCase {
 
     @Override
     public void deleteCostCenter(DeleteCostCenterRequest request) {
-        canAccessPolicy.ensureCanAccessBilling();
+        canAccessBillingPolicy.ensureCanAccessBilling();
         final var costCenter = costCenterRepository.findById(request.costCenterId())
                 .orElseThrow(() -> NotFoundException.notFound("CostCenter", String.valueOf(request.costCenterId()), currentUserApi.currentEmail()));
-        costCenter.setActive(false);
+        costCenter.setDeleted(true);
         costCenterRepository.save(costCenter);
         log.info("Cost center {} deleted by {}", costCenter.getId(), currentUserApi.currentEmail());
     }
 
     @Override
     public void assignProjectToCostCenter(AssignCostCenterToUserRequest request) {
-        canAccessPolicy.ensureCanAccessBilling();
+        canAccessBillingPolicy.ensureCanAccessBilling();
         final var getProjectResponse = getProjectUseCase.getProject(request.projectKey());
         final var newCostCenter = costCenterRepository.findById(request.costCenterId())
                 .orElseThrow(() -> NotFoundException.notFound("CostCenter", String.valueOf(request.costCenterId()), currentUserApi.currentEmail()));
@@ -69,7 +72,7 @@ public class UseCenterService implements EditCostCenterUseCase {
 
     @Override
     public void unassignProjectFromCostCenter(String projectKey) {
-        canAccessPolicy.ensureCanAccessBilling();
+        canAccessBillingPolicy.ensureCanAccessBilling();
         final var getProjectResponse = getProjectUseCase.getProject(projectKey);
         final var oldCostCenter = costCenterRepository.findByProject(getProjectResponse.project());
         if (oldCostCenter.isEmpty()) {

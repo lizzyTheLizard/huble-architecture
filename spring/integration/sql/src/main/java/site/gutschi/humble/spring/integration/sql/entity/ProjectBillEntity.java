@@ -24,16 +24,17 @@ public class ProjectBillEntity {
     @PositiveOrZero
     private BigDecimal amount;
     @PositiveOrZero
-    private int totalNonDeletedTasks;
+    private long totalNonDeletedTasks;
     @PositiveOrZero
-    private int createdTasks;
+    private long createdTasks;
 
     public static ProjectBillEntity fromModel(ProjectBill pb, ProjectEntityRepository projectEntityRepository) {
         final var entity = new ProjectBillEntity();
-        entity.setProject(projectEntityRepository.getReferenceById(pb.getProject().getKey()));
-        entity.setAmount(pb.getAmount());
-        entity.setTotalNonDeletedTasks(pb.getTotalNonDeletedTasks());
-        entity.setCreatedTasks(pb.getCreatedTasks());
+
+        entity.setProject(projectEntityRepository.getReferenceById(pb.project().getKey()));
+        entity.setAmount(pb.amount());
+        entity.setTotalNonDeletedTasks(pb.totalNonDeletedTasks());
+        entity.setCreatedTasks(pb.createdTasks());
         return entity;
     }
 

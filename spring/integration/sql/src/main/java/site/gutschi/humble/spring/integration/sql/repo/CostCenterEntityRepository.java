@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface CostCenterEntityRepository extends JpaRepository<CostCenterEntity, Integer> {
-    Optional<CostCenterEntity> findByProject(ProjectEntity project);
+    Optional<CostCenterEntity> findByProjects(ProjectEntity project);
 }
