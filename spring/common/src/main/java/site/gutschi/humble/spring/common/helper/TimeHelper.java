@@ -31,4 +31,9 @@ public class TimeHelper {
     public static LocalDate dateOf(Instant instant) {
         return LocalDate.ofInstant(instant, ZoneId.systemDefault());
     }
+
+    public static Instant instantOf(LocalDate date) {
+        return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+    }
+
 }

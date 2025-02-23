@@ -17,6 +17,7 @@ public class CostCenterService implements EditCostCenterUseCase {
     private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
     private final CurrentUserApi currentUserApi;
+    private final CostCenterValidPolicy costCenterValidPolicy;
     private final GetProjectUseCase getProjectUseCase;
 
     @Override
@@ -27,6 +28,7 @@ public class CostCenterService implements EditCostCenterUseCase {
         costCenter.setName(request.name());
         costCenter.setEmail(request.email());
         costCenter.setAddress(request.address());
+        costCenterValidPolicy.ensureCostCenterValid(costCenter);
         costCenterRepository.save(costCenter);
         log.info("Cost center {} updated by {}", costCenter.getId(), currentUserApi.currentEmail());
     }
@@ -39,6 +41,7 @@ public class CostCenterService implements EditCostCenterUseCase {
                 .address(request.address())
                 .email(request.email())
                 .build();
+        costCenterValidPolicy.ensureCostCenterValid(costCenter);
         costCenterRepository.save(costCenter);
         log.info("Cost center {} created by {}", costCenter.getId(), currentUserApi.currentEmail());
         return costCenter;

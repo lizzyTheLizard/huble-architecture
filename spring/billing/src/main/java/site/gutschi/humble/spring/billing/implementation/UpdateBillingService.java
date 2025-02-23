@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.billing.model.Bill;
 import site.gutschi.humble.spring.billing.model.BillingPeriod;
-import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.model.ProjectBill;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
@@ -33,44 +32,24 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     private final GetTasksUseCase getTasksUseCase;
     private final BillingConfiguration billingConfiguration;
     private final BillingPeriodRepository billingPeriodRepository;
+    private final NewBillingPeriodValidPolicy newBillingPeriodValidPolicy;
 
     @Override
-    public void updateBills() {
+    public void updateBills(LocalDate billingPeriodStart) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        final var lastStartExclusive = getLastStartExclusive();
-        for (var start = getFirstStart(); start.isBefore(lastStartExclusive); start = start.plusMonths(1)) {
-            final var billingPeriod = createNewBillingPeriod(start);
-            for (var costCenter : costCenterRepository.findAll()) {
-                createNewBill(costCenter, billingPeriod);
-            }
+        final var billingPeriod = BillingPeriod.createNew(billingPeriodStart);
+        newBillingPeriodValidPolicy.ensureFirstOfMonth(billingPeriod);
+        newBillingPeriodValidPolicy.ensureNotInTheFuture(billingPeriod);
+        newBillingPeriodValidPolicy.ensureNotOverlappingWithExistingPeriods(billingPeriod);
+        final var persistedBillingPeriod = billingPeriodRepository.save(billingPeriod);
+        for (var costCenter : costCenterRepository.findAll()) {
+            final var projectBills = costCenter.getProjects().stream()
+                    .filter(p -> wasActive(p, persistedBillingPeriod))
+                    .map(p -> createProjectBill(p, persistedBillingPeriod))
+                    .collect(Collectors.toSet());
+            final var bill = new Bill(null, costCenter, persistedBillingPeriod, projectBills);
+            billRepository.save(bill);
         }
-    }
-
-    private LocalDate getFirstStart() {
-        return billingPeriodRepository.getLatestBillingPeriod()
-                .map(BillingPeriod::start)
-                .map(start -> start.plusMonths(1))
-                .orElse(TimeHelper.today().withDayOfMonth(1).minusMonths(1));
-    }
-
-    private LocalDate getLastStartExclusive() {
-        return TimeHelper.today().withDayOfMonth(1);
-    }
-
-    private BillingPeriod createNewBillingPeriod(LocalDate start) {
-        final var today = TimeHelper.today();
-        final var dueDate = today.plusDays(30);
-        final var newBillingPeriod = new BillingPeriod(null, start, dueDate, today);
-        return billingPeriodRepository.save(newBillingPeriod);
-    }
-
-    private void createNewBill(CostCenter costCenter, BillingPeriod billingPeriod) {
-        final var projectBills = costCenter.getProjects().stream()
-                .filter(p -> wasActive(p, billingPeriod))
-                .map(p -> createProjectBill(p, billingPeriod))
-                .collect(Collectors.toSet());
-        final var bill = new Bill(null, costCenter, billingPeriod, projectBills);
-        billRepository.save(bill);
     }
 
     private boolean wasActive(Project project, BillingPeriod billingPeriod) {
@@ -94,13 +73,13 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     private long countTotalTasks(Project project, BillingPeriod billingPeriod) {
         return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
                 .filter(t -> billingPeriod.isInOrBefore(getCreatedDate(t)))
-                .filter(t -> !billingPeriod.isIn(getDeletedDate(t)))
+                .filter(t -> !billingPeriod.isBefore(getDeletedDate(t)))
                 .count();
     }
 
     private long countCreatedTasks(Project project, BillingPeriod billingPeriod) {
         return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
-                .filter(t -> !billingPeriod.isIn(getCreatedDate(t)))
+                .filter(t -> billingPeriod.isIn(getCreatedDate(t)))
                 .count();
     }
 

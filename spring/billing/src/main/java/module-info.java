@@ -7,6 +7,7 @@ module site.gutschi.humble.spring.billing {
     requires site.gutschi.humble.spring.users;
     requires site.gutschi.humble.spring.tasks;
     requires spring.beans;
+    requires org.apache.commons.validator;
     exports site.gutschi.humble.spring.billing.usecases;
     exports site.gutschi.humble.spring.billing.ports;
     exports site.gutschi.humble.spring.billing.model;

@@ -1,0 +1,268 @@
+package site.gutschi.humble.spring.billing.usecases;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import site.gutschi.humble.spring.billing.model.CostCenter;
+import site.gutschi.humble.spring.billing.ports.BillRepository;
+import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
+import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
+import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.exception.InvalidInputException;
+import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
+import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
+@SpringBootTest
+class EditCostCenterUseCaseTest {
+    @Autowired
+    private EditCostCenterUseCase target;
+
+    @MockitoBean
+    private CostCenterRepository costCenterRepository;
+
+    @MockitoBean
+    private CurrentUserApi currentUserApi;
+
+    @MockitoBean
+    @SuppressWarnings("unused") // Used indirectly
+    private GetProjectUseCase getProjectUseCase;
+
+    @MockitoBean
+    @SuppressWarnings("unused") // Used indirectly
+    private BillRepository billRepository;
+
+    @MockitoBean
+    @SuppressWarnings("unused") // Used indirectly
+    private BillingPeriodRepository billingPeriodRepository;
+
+    @MockitoBean
+    @SuppressWarnings("unused") // Used indirectly
+    private GetTasksUseCase getTasksUseCase;
+
+    private CostCenter costCenter;
+
+    @BeforeEach
+    void setUp() {
+        costCenter = new CostCenter(3, "name", List.of("address"), "old@example.com", false, Set.of());
+        Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.of(costCenter));
+        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+    }
+
+    @Nested
+    class EditCostCenter {
+        private EditCostCenterUseCase.EditCostCenterRequest request;
+
+        @BeforeEach
+        void setUp() {
+            request = new EditCostCenterUseCase.EditCostCenterRequest(costCenter.getId(), List.of("address2"), "new name", "new@example.com");
+        }
+
+        @Test
+        void notAllowed() {
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.editCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void notFound() {
+            Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.empty());
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.editCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void invalidInput() {
+            request = new EditCostCenterUseCase.EditCostCenterRequest(costCenter.getId(), List.of("address2"), null, "new email");
+
+            assertThatExceptionOfType(InvalidInputException.class).isThrownBy(() -> target.editCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void edit() {
+            target.editCostCenter(request);
+
+            assertThat(costCenter.getAddress()).isEqualTo(request.address());
+            assertThat(costCenter.getName()).isEqualTo(request.name());
+            assertThat(costCenter.getEmail()).isEqualTo(request.email());
+            Mockito.verify(costCenterRepository, Mockito.times(1)).save(costCenter);
+        }
+    }
+
+    @Nested
+    class CreateCostCenter {
+        private EditCostCenterUseCase.CreateCostCenterRequest request;
+
+        @BeforeEach
+        void setUp() {
+            request = new EditCostCenterUseCase.CreateCostCenterRequest(List.of("address2"), "new name", "new@example.com");
+        }
+
+        @Test
+        void notAllowed() {
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.createCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void invalidInput() {
+            request = new EditCostCenterUseCase.CreateCostCenterRequest(List.of("address2"), null, "new email");
+
+            assertThatExceptionOfType(InvalidInputException.class).isThrownBy(() -> target.createCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void create() {
+            final var result = target.createCostCenter(request);
+
+            assertThat(result.getAddress()).isEqualTo(request.address());
+            assertThat(result.getName()).isEqualTo(request.name());
+            assertThat(result.getEmail()).isEqualTo(request.email());
+            Mockito.verify(costCenterRepository, Mockito.times(1)).save(result);
+        }
+    }
+
+    @Nested
+    class DeleteCostCenter {
+        private EditCostCenterUseCase.DeleteCostCenterRequest request;
+
+        @BeforeEach
+        void setUp() {
+            request = new EditCostCenterUseCase.DeleteCostCenterRequest(costCenter.getId());
+        }
+
+        @Test
+        void notAllowed() {
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.deleteCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void notFound() {
+            Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.empty());
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.deleteCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void delete() {
+            target.deleteCostCenter(request);
+
+            assertThat(costCenter.isDeleted()).isEqualTo(true);
+            Mockito.verify(costCenterRepository, Mockito.times(1)).save(costCenter);
+        }
+    }
+
+    @Nested
+    class AssignProjectToCostCenter {
+        private EditCostCenterUseCase.AssignCostCenterToUserRequest request;
+        private Project project;
+
+        @BeforeEach
+        void setUp() {
+            final var owner = new User("dev@example.com", "Hans");
+            project = Project.createNew("key", "name", owner, currentUserApi);
+            costCenter.addProject(project);
+            request = new EditCostCenterUseCase.AssignCostCenterToUserRequest(costCenter.getId(), project.getKey());
+            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(new GetProjectUseCase.GetProjectResponse(project, true));
+        }
+
+        @Test
+        void notAllowed() {
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.assignProjectToCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void costCenterNotFound() {
+            Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.empty());
+
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.assignProjectToCostCenter(request));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void edit() {
+            target.assignProjectToCostCenter(request);
+
+            assertThat(costCenter.getProjects()).singleElement().isEqualTo(project);
+            Mockito.verify(costCenterRepository, Mockito.times(1)).save(costCenter);
+        }
+
+    }
+
+    @Nested
+    class UnassignProjectFromCostCenter {
+        private Project project;
+
+        @BeforeEach
+        void setUp() {
+            final var owner = new User("dev@example.com", "Hans");
+            project = Project.createNew("key", "name", owner, currentUserApi);
+            costCenter.addProject(project);
+            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(new GetProjectUseCase.GetProjectResponse(project, true));
+            Mockito.when(costCenterRepository.findByProject(project)).thenReturn(Optional.of(costCenter));
+        }
+
+        @Test
+        void notAllowed() {
+            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+
+            assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.unassignProjectFromCostCenter(project.getKey()));
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void notFound() {
+            Mockito.when(costCenterRepository.findByProject(project)).thenReturn(Optional.empty());
+
+            target.unassignProjectFromCostCenter(project.getKey());
+
+            Mockito.verify(costCenterRepository, Mockito.never()).save(costCenter);
+        }
+
+        @Test
+        void unassign() {
+            target.unassignProjectFromCostCenter(project.getKey());
+
+            assertThat(costCenter.getProjects()).isEmpty();
+            Mockito.verify(costCenterRepository, Mockito.times(1)).save(costCenter);
+        }
+    }
+}

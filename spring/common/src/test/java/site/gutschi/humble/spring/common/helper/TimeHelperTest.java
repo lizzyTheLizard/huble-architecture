@@ -11,6 +11,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TimeHelperTest {
 
+    @Test
+    void instantOf() {
+        final var dummyDate = LocalDate.of(1915, 3, 5);
+
+        final var result = TimeHelper.instantOf(dummyDate);
+
+        assertThat(TimeHelper.dateOf(result)).isEqualTo(dummyDate);
+    }
+
+    @Test
+    void dateOf() {
+        final var dummyDate = LocalDate.of(1915, 3, 5);
+        final var instant = dummyDate.atTime(12, 0).toInstant(ZoneOffset.UTC);
+
+        final var result = TimeHelper.dateOf(instant);
+
+        assertThat(result).isEqualTo(dummyDate);
+    }
+
     @Nested
     class Now {
         @Test
@@ -74,16 +93,4 @@ class TimeHelperTest {
         }
     }
 
-    @Nested
-    class DateOf {
-        @Test
-        void dateOf() {
-            final var dummyDate = LocalDate.of(1915, 3, 5);
-            final var instant = dummyDate.atTime(12, 0).toInstant(ZoneOffset.UTC);
-
-            final var result = TimeHelper.dateOf(instant);
-
-            assertThat(result).isEqualTo(dummyDate);
-        }
-    }
 }

@@ -1,5 +1,8 @@
 dependencies {
     implementation 'org.springframework:spring-context'
+    implementation('commons-validator:commons-validator:1.9.0') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
     implementation project(":common")
     implementation project(":tasks")
     implementation project(":users")
