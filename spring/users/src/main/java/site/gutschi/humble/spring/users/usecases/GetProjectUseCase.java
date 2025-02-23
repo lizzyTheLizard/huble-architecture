@@ -9,14 +9,10 @@ public interface GetProjectUseCase {
 
     /**
      * Get a project by its key
-     * <p>
-     * Checks if the user is allowed to view the project, then returns the project.
      *
-     * @param projectKey The key of the project to get
-     * @return The project and extra information
      * @throws NotFoundException If the project does not exist or is invisible to the user.
      */
-    GetProjectResponse getProject(String projectKey);
+    Project getProject(String projectKey);
 
     /**
      * Get all projects the user is allowed to access
@@ -24,13 +20,4 @@ public interface GetProjectUseCase {
      * @return All projects the user is allowed to manage.
      */
     Set<Project> getAllProjects();
-
-    /**
-     * The response object for getting a project
-     *
-     * @param project    The project
-     * @param manageable If the user is allowed to manage the project
-     */
-    record GetProjectResponse(Project project, boolean manageable) {
-    }
 }

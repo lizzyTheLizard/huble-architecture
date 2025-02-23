@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-//TODO BILLING: Test JpaCostCenterRepository
 public class JpaCostCenterRepository implements CostCenterRepository {
     private final CostCenterEntityRepository costCenterEntityRepository;
     private final ProjectEntityRepository projectEntityRepository;
@@ -28,7 +27,7 @@ public class JpaCostCenterRepository implements CostCenterRepository {
 
     @Override
     public CostCenter save(CostCenter costCenter) {
-        final var entity = CostCenterEntity.fromModel(costCenter);
+        final var entity = CostCenterEntity.fromModel(costCenter, projectEntityRepository);
         return costCenterEntityRepository.save(entity).toModel();
     }
 

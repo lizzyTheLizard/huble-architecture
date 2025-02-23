@@ -8,14 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.billing.model.CostCenter;
-import site.gutschi.humble.spring.billing.ports.BillRepository;
-import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
@@ -39,20 +36,7 @@ class EditCostCenterUseCaseTest {
     private CurrentUserApi currentUserApi;
 
     @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
     private GetProjectUseCase getProjectUseCase;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private BillRepository billRepository;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private BillingPeriodRepository billingPeriodRepository;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private GetTasksUseCase getTasksUseCase;
 
     private CostCenter costCenter;
 
@@ -117,6 +101,7 @@ class EditCostCenterUseCaseTest {
         @BeforeEach
         void setUp() {
             request = new EditCostCenterUseCase.CreateCostCenterRequest(List.of("address2"), "new name", "new@example.com");
+            Mockito.when(costCenterRepository.save(Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
@@ -195,7 +180,7 @@ class EditCostCenterUseCaseTest {
             project = Project.createNew("key", "name", owner, currentUserApi);
             costCenter.addProject(project);
             request = new EditCostCenterUseCase.AssignCostCenterToUserRequest(costCenter.getId(), project.getKey());
-            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(new GetProjectUseCase.GetProjectResponse(project, true));
+            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(project);
         }
 
         @Test
@@ -235,7 +220,7 @@ class EditCostCenterUseCaseTest {
             final var owner = new User("dev@example.com", "Hans");
             project = Project.createNew("key", "name", owner, currentUserApi);
             costCenter.addProject(project);
-            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(new GetProjectUseCase.GetProjectResponse(project, true));
+            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(project);
             Mockito.when(costCenterRepository.findByProject(project)).thenReturn(Optional.of(costCenter));
         }
 

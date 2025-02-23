@@ -12,7 +12,7 @@ import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.List;
@@ -177,7 +177,7 @@ public class SolrTests {
 
     }
 
-    private GetTasksUseCase.TaskFindView toView(Task task) {
-        return new GetTasksUseCase.TaskFindView(task.getKey(), task.getTitle(), task.getAssigneeEmail().orElse(null), task.getStatus());
+    private ViewTasksUseCase.TaskFindView toView(Task task) {
+        return new ViewTasksUseCase.TaskFindView(task.getKey(), task.getTitle(), task.getAssigneeEmail().orElse(null), task.getStatus());
     }
 }

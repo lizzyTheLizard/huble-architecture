@@ -27,7 +27,6 @@ import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectHistoryEntry;
 import site.gutschi.humble.spring.users.model.ProjectHistoryType;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -48,20 +47,13 @@ class UpdateBillsUseCaseTest {
     private CurrentUserApi currentUserApi;
 
     @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private BillRepository billRepository;
+    private GetTasksUseCase getTasksUseCase;
 
     @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
     private BillingPeriodRepository billingPeriodRepository;
 
     @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private GetProjectUseCase getProjectUseCase;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private GetTasksUseCase getTasksUseCase;
+    private BillRepository billRepository;
 
     private CostCenter costCenter;
     private Project testProject;
@@ -79,9 +71,9 @@ class UpdateBillsUseCaseTest {
         Mockito.when(billingPeriodRepository.save(Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0, BillingPeriod.class));
     }
 
-    private Task createTask(int id, LocalDate created, LocalDate deleted) {
+    private Task createTask(LocalDate created, LocalDate deleted) {
         final var builder = Task.builder()
-                .id(id)
+                .id(1)
                 .projectKey(testProject.getKey())
                 .currentUserApi(currentUserApi)
                 .creatorEmail(currentUser.getEmail());
@@ -112,7 +104,7 @@ class UpdateBillsUseCaseTest {
         costCenter.removeProject(testProject);
         testProject = builder.build();
         costCenter.addProject(testProject);
-        Mockito.when(getTasksUseCase.getTasksForProject(testProject.getKey())).thenReturn(new GetTasksUseCase.GetTasksForProjectResponse(tasks, true, true, testProject));
+        Mockito.when(getTasksUseCase.getTasksForProject(testProject.getKey())).thenReturn(tasks);
     }
 
     @Nested
@@ -248,7 +240,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskDeletedBefore() {
-            final var task = createTask(1, LocalDate.MIN, billingPeriodStart.minusDays(1));
+            final var task = createTask(LocalDate.MIN, billingPeriodStart.minusDays(1));
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -258,7 +250,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskDeletedDuring() {
-            final var task = createTask(1, LocalDate.MIN, billingPeriodStart);
+            final var task = createTask(LocalDate.MIN, billingPeriodStart);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -268,7 +260,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskCreatedDuring() {
-            final var task = createTask(1, billingPeriodStart.plusMonths(1).minusDays(1), null);
+            final var task = createTask(billingPeriodStart.plusMonths(1).minusDays(1), null);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -278,7 +270,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskCreatedAfter() {
-            final var task = createTask(1, billingPeriodStart.plusMonths(1), null);
+            final var task = createTask(billingPeriodStart.plusMonths(1), null);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -299,7 +291,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskCreatedBefore() {
-            final var task = createTask(1, billingPeriodStart.minusDays(1), null);
+            final var task = createTask(billingPeriodStart.minusDays(1), null);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -309,7 +301,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskCreatedDuring() {
-            final var task = createTask(1, billingPeriodStart.plusMonths(1).minusDays(1), null);
+            final var task = createTask(billingPeriodStart.plusMonths(1).minusDays(1), null);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -319,7 +311,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskDeletedAgain() {
-            final var task = createTask(1, billingPeriodStart.plusMonths(1).minusDays(2), billingPeriodStart.plusMonths(1).minusDays(1));
+            final var task = createTask(billingPeriodStart.plusMonths(1).minusDays(2), billingPeriodStart.plusMonths(1).minusDays(1));
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);
@@ -329,7 +321,7 @@ class UpdateBillsUseCaseTest {
 
         @Test
         void taskCreatedAfter() {
-            final var task = createTask(1, billingPeriodStart.plusMonths(1), null);
+            final var task = createTask(billingPeriodStart.plusMonths(1), null);
             updateTestProject(LocalDate.MIN, List.of(), Set.of(task));
 
             target.updateBills(billingPeriodStart);

@@ -24,15 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Testcontainers
 public class ProjectRepositoryTests {
-    final static User u1 = User.builder()
-            .email("u1@example.com")
-            .build();
-    final static User u2 = User.builder()
-            .email("u2@example.com")
-            .build();
-    final static User u3 = User.builder()
-            .email("u3@example.com")
-            .build();
+    final static User u1 = new User("u1@example.com", "U1");
+    final static User u2 = new User("u2@example.com", "U2");
+    final static User u3 = new User("u3@example.com", "U3");
+
     @Container
     @ServiceConnection
     @SuppressWarnings("resource") // Closed by Spring
@@ -40,6 +35,7 @@ public class ProjectRepositoryTests {
             .withDatabaseName("test")
             .withUsername("postgres")
             .withPassword("password");
+
     @Autowired
     private UserRepository userRepository;
 
@@ -56,7 +52,7 @@ public class ProjectRepositoryTests {
         TimeHelper.setNow(null);
 
         final var projectBuilder = Project.builder()
-                .key("TEST")
+                .key("TXT")
                 .name("Test Project")
                 .active(true)
                 .estimation(1)
@@ -132,13 +128,13 @@ public class ProjectRepositoryTests {
     @Test
     void findForUser() {
         final var project1 = Project.builder()
-                .key("FFU1")
+                .key("FF-U1")
                 .name("Find All 1")
                 .projectRole(new ProjectRole(u1, ProjectRoleType.STAKEHOLDER))
                 .build();
         projectRepository.save(project1);
         final var project2 = Project.builder()
-                .key("FFU2")
+                .key("FF-U2")
                 .name("Find All 2")
                 .projectRole(new ProjectRole(u3, ProjectRoleType.STAKEHOLDER))
                 .build();

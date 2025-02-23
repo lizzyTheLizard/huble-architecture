@@ -18,7 +18,7 @@ public record BillingPeriod(
         LocalDate dueDate,
         LocalDate createdDate) {
 
-    public static BillingPeriod createNew(LocalDate start) {
+    public static BillingPeriod create(LocalDate start) {
         final var today = TimeHelper.today();
         final var dueDate = today.plusDays(30);
         return new BillingPeriod(null, start, dueDate, today);

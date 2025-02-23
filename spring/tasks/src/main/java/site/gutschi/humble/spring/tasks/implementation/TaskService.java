@@ -12,6 +12,7 @@ import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
 import site.gutschi.humble.spring.tasks.usecases.EditTaskUseCase;
 import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
@@ -20,7 +21,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTaskUseCase {
+public class TaskService implements EditTaskUseCase, ViewTasksUseCase, GetTasksUseCase, CreateTaskUseCase {
     private final CurrentUserApi currentUserApi;
     private final GetProjectUseCase getProjectUseCase;
     private final TaskRepository taskRepository;
@@ -32,7 +33,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public void edit(EditTaskRequest request) {
         final var existingTask = getTaskInternal(request.taskKey());
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessTasksPolicy.ensureCanEditTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -49,7 +50,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public void comment(CommentTaskRequest request) {
         final var existingTask = getTaskInternal(request.taskKey());
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
         existingTask.addComment(request.comment());
@@ -61,7 +62,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public void delete(TaskKey taskKey) {
         final var existingTask = getTaskInternal(taskKey);
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         projectActivePolicy.ensureProjectIsActive(project);
         canAccessTasksPolicy.ensureCanDeleteTasksInProject(project);
         notDeletedPolicy.ensureNotDeleted(existingTask);
@@ -74,7 +75,7 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     @Override
     public GetTaskResponse getTaskByKey(TaskKey taskKey) {
         final var existingTask = getTaskInternal(taskKey);
-        final var project = getProjectUseCase.getProject(existingTask.getProjectKey()).project();
+        final var project = getProjectUseCase.getProject(existingTask.getProjectKey());
         notDeletedPolicy.ensureNotDeleted(existingTask);
         final var editable = canAccessTasksPolicy.canEditTasksInProject(project);
         final var deletable = canAccessTasksPolicy.canDeleteTasksInProject(project);
@@ -90,17 +91,14 @@ public class TaskService implements EditTaskUseCase, GetTasksUseCase, CreateTask
     }
 
     @Override
-    public GetTasksForProjectResponse getTasksForProject(String projectKey) {
-        final var project = getProjectUseCase.getProject(projectKey).project();
-        final var tasks = taskRepository.findByProject(project);
-        final var editable = canAccessTasksPolicy.canEditTasksInProject(project);
-        final var deletable = canAccessTasksPolicy.canDeleteTasksInProject(project);
-        return new GetTasksForProjectResponse(tasks, editable, deletable, project);
+    public Set<Task> getTasksForProject(String projectKey) {
+        final var project = getProjectUseCase.getProject(projectKey);
+        return taskRepository.findByProject(project);
     }
 
     @Override
     public Task create(CreateTaskRequest request) {
-        final var project = getProjectUseCase.getProject(request.projectKey()).project();
+        final var project = getProjectUseCase.getProject(request.projectKey());
         canAccessTasksPolicy.ensureCanEditTasksInProject(project);
         projectActivePolicy.ensureProjectIsActive(project);
         final var nextId = taskRepository.nextId(request.projectKey());

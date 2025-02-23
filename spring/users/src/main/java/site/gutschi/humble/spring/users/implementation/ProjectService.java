@@ -11,14 +11,14 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 import site.gutschi.humble.spring.users.usecases.CreateProjectUseCase;
 import site.gutschi.humble.spring.users.usecases.EditProjectUseCase;
 import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
+import site.gutschi.humble.spring.users.usecases.ShowProjectsUseCase;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class ProjectService implements CreateProjectUseCase, EditProjectUseCase, GetProjectUseCase {
+public class ProjectService implements CreateProjectUseCase, EditProjectUseCase, ShowProjectsUseCase {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final CurrentUserApi currentUserApi;
@@ -26,19 +26,18 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
     private final CanAccessUserPolicy canAccessUserPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
     private final ProjectValidPolicy projectValidPolicy;
+    private final GetProjectUseCase getProjectUseCase;
 
 
     @Override
     public GetProjectResponse getProject(String projectKey) {
-        final var project = getProjectInternal(projectKey);
+        final var project = getProjectUseCase.getProject(projectKey);
         return new GetProjectResponse(project, canAccessProjectPolicy.canManage(project));
     }
 
     @Override
     public Set<Project> getAllProjects() {
-        return projectRepository.findAll().stream()
-                .filter(canAccessProjectPolicy::canRead)
-                .collect(Collectors.toSet());
+        return getProjectUseCase.getAllProjects();
     }
 
     @Override
@@ -60,7 +59,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
 
     @Override
     public void editProject(EditProjectRequest request) {
-        final var project = getProjectInternal(request.projectKey());
+        final var project = getProjectUseCase.getProject(request.projectKey());
         canAccessProjectPolicy.ensureCanManage(project);
         project.setName(request.name());
         project.setActive(request.active());
@@ -72,7 +71,7 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
 
     @Override
     public void assignUser(AssignUserRequest request) {
-        final var project = getProjectInternal(request.projectKey());
+        final var project = getProjectUseCase.getProject(request.projectKey());
         canAccessProjectPolicy.ensureCanManage(project);
         final var user = getUserInternal(request.userEmail());
         project.setUserRole(user, request.type());
@@ -82,19 +81,12 @@ public class ProjectService implements CreateProjectUseCase, EditProjectUseCase,
 
     @Override
     public void unAssignUser(UnAssignUserRequest request) {
-        final var project = getProjectInternal(request.projectKey());
+        final var project = getProjectUseCase.getProject(request.projectKey());
         canAccessProjectPolicy.ensureCanManage(project);
         final var user = getUserInternal(request.userEmail());
         project.removeUserRole(user);
         projectRepository.save(project);
         log.info("User {} unassigned from project {}", user.getEmail(), project.getKey());
-    }
-
-    private Project getProjectInternal(String projectKey) {
-        final var project = projectRepository.findByKey(projectKey)
-                .orElseThrow(() -> canAccessProjectPolicy.projectNotFound(projectKey));
-        canAccessProjectPolicy.ensureCanRead(project);
-        return project;
     }
 
     private User getUserInternal(String userEmail) {

@@ -31,4 +31,9 @@ public class InMemoryBillingPeriodRepository implements BillingPeriodRepository 
         billingPeriods.add(result);
         return result;
     }
+
+    @Override
+    public Set<BillingPeriod> findAll() {
+        return billingPeriods;
+    }
 }

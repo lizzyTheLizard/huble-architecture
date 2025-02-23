@@ -11,7 +11,6 @@ import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
-import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
@@ -36,10 +35,6 @@ class CreateTaskTest {
 
     @MockitoBean
     private GetProjectUseCase getProjectUseCase;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private SearchCaller searchCaller;
 
     private User currentUser;
     private Project testProject;
@@ -71,8 +66,7 @@ class CreateTaskTest {
     class CreateTask {
         @BeforeEach
         void setup() {
-            final var getProjectResponse = new GetProjectUseCase.GetProjectResponse(testProject, true);
-            Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(getProjectResponse);
+            Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
             Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
         }
 

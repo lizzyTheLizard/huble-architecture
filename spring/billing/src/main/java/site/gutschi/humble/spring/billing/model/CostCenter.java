@@ -53,6 +53,16 @@ public class CostCenter {
         this.projects = Collections.unmodifiableSet(projects);
     }
 
+    public static CostCenter create(String name, List<String> address, String email) {
+        return CostCenter.builder()
+                .id(null)
+                .name(name)
+                .address(address)
+                .email(email)
+                .deleted(false)
+                .build();
+    }
+
     /**
      * Add a project to the cost center.
      */

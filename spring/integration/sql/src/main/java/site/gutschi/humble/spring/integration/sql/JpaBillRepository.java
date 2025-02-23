@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-//TODO BILLING: Test JpaBillRepository
 public class JpaBillRepository implements BillRepository {
     private final ProjectEntityRepository projectEntityRepository;
     private final BillEntityRepository billEntityRepository;
@@ -41,6 +40,6 @@ public class JpaBillRepository implements BillRepository {
     @Override
     public void save(Bill bill) {
         final var entity = BillEntity.fromModel(bill, projectEntityRepository);
-        billEntityRepository.save(entity).toModel();
+        billEntityRepository.save(entity);
     }
 }

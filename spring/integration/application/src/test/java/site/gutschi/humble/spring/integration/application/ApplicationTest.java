@@ -1,5 +1,6 @@
 package site.gutschi.humble.spring.integration.application;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -21,7 +22,7 @@ class ApplicationTest {
 
 
     @Test
-    @SuppressWarnings("EmptyMethod")
     void contextLoads() {
+        Assertions.assertThat(container).isNotNull();
     }
 }

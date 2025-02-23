@@ -13,7 +13,7 @@ import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
 import site.gutschi.humble.spring.tasks.usecases.EditTaskUseCase;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @SuppressWarnings("SameReturnValue")
 public class TaskController {
-    private final GetTasksUseCase getTasksUseCase;
+    private final ViewTasksUseCase viewTasksUseCase;
     private final EditTaskUseCase editTaskUseCase;
     private final CreateTaskUseCase createTaskUseCase;
     private final CurrentUserApi currentUserApi;
@@ -30,7 +30,7 @@ public class TaskController {
     @GetMapping("/tasks/{key}")
     public String showTask(@PathVariable("key") String keyStr, Model model) {
         final var key = TaskKey.fromString(keyStr);
-        final var response = getTasksUseCase.getTaskByKey(key);
+        final var response = viewTasksUseCase.getTaskByKey(key);
         model.addAttribute("task", response.task());
         model.addAttribute("editable", response.editable());
         model.addAttribute("deletable", response.deletable());
@@ -42,7 +42,7 @@ public class TaskController {
     @GetMapping("/tasks/{key}/delete")
     public String deleteTaskView(@PathVariable("key") String keyStr, Model model) {
         final var key = TaskKey.fromString(keyStr);
-        final var response = getTasksUseCase.getTaskByKey(key);
+        final var response = viewTasksUseCase.getTaskByKey(key);
         if (!response.deletable()) {
             throw NotAllowedException.notAllowed("Project", response.project().getKey(), "delete task", currentUserApi.currentEmail());
         }
@@ -54,7 +54,7 @@ public class TaskController {
     @PostMapping("/tasks/{key}/delete")
     public String deleteTask(@PathVariable("key") String keyStr) {
         final var key = TaskKey.fromString(keyStr);
-        final var response = getTasksUseCase.getTaskByKey(key);
+        final var response = viewTasksUseCase.getTaskByKey(key);
         editTaskUseCase.delete(key);
         return "redirect:/projects/" + response.project().getKey();
     }
@@ -70,7 +70,7 @@ public class TaskController {
     @GetMapping("/tasks/{key}/edit")
     public String editTaskView(@PathVariable("key") String keyStr, Model model) {
         final var key = TaskKey.fromString(keyStr);
-        final var response = getTasksUseCase.getTaskByKey(key);
+        final var response = viewTasksUseCase.getTaskByKey(key);
         if (!response.editable()) {
             throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit task", currentUserApi.currentEmail());
         }
@@ -102,12 +102,12 @@ public class TaskController {
     @GetMapping("/tasks")
     public String showTasksOverview(@RequestParam(name = "page", required = false) Integer page,
                                     @RequestParam(name = "query") String query, Model model) {
-        final var request = GetTasksUseCase.FindTasksRequest.builder()
+        final var request = ViewTasksUseCase.FindTasksRequest.builder()
                 .query(query)
                 .page(page != null ? page : 1)
                 .pageSize(10)
                 .build();
-        final var response = getTasksUseCase.findTasks(request);
+        final var response = viewTasksUseCase.findTasks(request);
         final var projectUsers = response.projects().stream()
                 .flatMap(project -> project.getProjectUsers().entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

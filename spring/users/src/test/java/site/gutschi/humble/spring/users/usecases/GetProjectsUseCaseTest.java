@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest
-class GetProjectUseCaseTest {
+class GetProjectsUseCaseTest {
     @Autowired
     private GetProjectUseCase target;
 
@@ -78,15 +78,7 @@ class GetProjectUseCaseTest {
             final var result = target.getProject(testProject.getKey());
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(new GetProjectUseCase.GetProjectResponse(testProject, true));
-        }
-
-        @Test
-        void asUser() {
-            final var result = target.getProject(testProject.getKey());
-
-            assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(new GetProjectUseCase.GetProjectResponse(testProject, false));
+            assertThat(result).isEqualTo(testProject);
         }
     }
 

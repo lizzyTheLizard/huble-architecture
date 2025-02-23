@@ -7,7 +7,7 @@ import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 
 import java.util.List;
 
@@ -52,8 +52,8 @@ public class TaskSolrDocument {
         return result;
     }
 
-    public GetTasksUseCase.TaskFindView toTaskView() {
+    public ViewTasksUseCase.TaskFindView toTaskView() {
         final var key = TaskKey.fromString(this.key);
-        return new GetTasksUseCase.TaskFindView(key, title, assignee, TaskStatus.valueOf(status));
+        return new ViewTasksUseCase.TaskFindView(key, title, assignee, TaskStatus.valueOf(status));
     }
 }

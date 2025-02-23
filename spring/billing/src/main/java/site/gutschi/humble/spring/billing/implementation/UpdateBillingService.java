@@ -37,7 +37,7 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     @Override
     public void updateBills(LocalDate billingPeriodStart) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        final var billingPeriod = BillingPeriod.createNew(billingPeriodStart);
+        final var billingPeriod = BillingPeriod.create(billingPeriodStart);
         newBillingPeriodValidPolicy.ensureFirstOfMonth(billingPeriod);
         newBillingPeriodValidPolicy.ensureNotInTheFuture(billingPeriod);
         newBillingPeriodValidPolicy.ensureNotOverlappingWithExistingPeriods(billingPeriod);
@@ -71,14 +71,14 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     }
 
     private long countTotalTasks(Project project, BillingPeriod billingPeriod) {
-        return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
+        return getTasksUseCase.getTasksForProject(project.getKey()).stream()
                 .filter(t -> billingPeriod.isInOrBefore(getCreatedDate(t)))
                 .filter(t -> !billingPeriod.isBefore(getDeletedDate(t)))
                 .count();
     }
 
     private long countCreatedTasks(Project project, BillingPeriod billingPeriod) {
-        return getTasksUseCase.getTasksForProject(project.getKey()).tasks().stream()
+        return getTasksUseCase.getTasksForProject(project.getKey()).stream()
                 .filter(t -> billingPeriod.isIn(getCreatedDate(t)))
                 .count();
     }

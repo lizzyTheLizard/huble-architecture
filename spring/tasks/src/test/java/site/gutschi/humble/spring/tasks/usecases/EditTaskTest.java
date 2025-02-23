@@ -12,7 +12,6 @@ import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 import site.gutschi.humble.spring.tasks.model.*;
-import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
@@ -39,10 +38,6 @@ class EditTaskTest {
     @MockitoBean
     private GetProjectUseCase getProjectUseCase;
 
-    @MockitoBean
-    @SuppressWarnings("unused") // Used indirectly
-    private SearchCaller searchCaller;
-
     private User currentUser;
     private Project testProject;
     private Task existingTask;
@@ -53,8 +48,7 @@ class EditTaskTest {
         currentUser = new User("dev@example.com", "Hans");
         testProject = Project.createNew("PRO", "Test", currentUser, currentUserApi);
         existingTask = Task.createNew(currentUserApi, testProject.getKey(), 13, "Test", "Test");
-        final var getProjectResponse = new GetProjectUseCase.GetProjectResponse(testProject, true);
-        Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(getProjectResponse);
+        Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(testProject);
         Mockito.when(taskRepository.findByKey(existingTask.getKey().toString())).thenReturn(Optional.of(existingTask));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
         Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());

@@ -5,26 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.UserRepository;
-import site.gutschi.humble.spring.users.usecases.GetUserUseCase;
 import site.gutschi.humble.spring.users.usecases.UpdateUserUseCase;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements UpdateUserUseCase, GetUserUseCase {
+public class UserService implements UpdateUserUseCase {
     private final UserRepository userRepository;
     private final CanAccessUserPolicy canAccessUserPolicy;
     private final KeyUniquePolicy keyUniquePolicy;
     private final UserValidPolicy userValidPolicy;
-
-    @Override
-    public User getUser(String userEmail) {
-        final var user = userRepository.findByMail(userEmail)
-                .orElseThrow(() -> canAccessUserPolicy.userNotFound(userEmail));
-        canAccessUserPolicy.ensureCanRead(user);
-        return user;
-    }
-
+    
     @Override
     public User updateUserAfterLogin(UpdateUserRequest request) {
         canAccessUserPolicy.canUpdateAfterLogin(request.email());

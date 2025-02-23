@@ -15,7 +15,6 @@ public interface CostCenterRepository {
     /**
      * Saves a new cost center and returns the saved cost center.
      */
-    //TODO BILLING: Use return value
     CostCenter save(CostCenter costCenter);
 
     /**

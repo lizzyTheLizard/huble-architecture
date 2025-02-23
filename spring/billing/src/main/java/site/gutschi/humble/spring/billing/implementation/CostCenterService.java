@@ -36,15 +36,11 @@ public class CostCenterService implements EditCostCenterUseCase {
     @Override
     public CostCenter createCostCenter(CreateCostCenterRequest request) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        final var costCenter = CostCenter.builder()
-                .name(request.name())
-                .address(request.address())
-                .email(request.email())
-                .build();
+        final var costCenter = CostCenter.create(request.name(), request.address(), request.email());
         costCenterValidPolicy.ensureCostCenterValid(costCenter);
-        costCenterRepository.save(costCenter);
-        log.info("Cost center {} created by {}", costCenter.getId(), currentUserApi.currentEmail());
-        return costCenter;
+        final var persistedCostCenter = costCenterRepository.save(costCenter);
+        log.info("Cost center {} created by {}", persistedCostCenter.getId(), currentUserApi.currentEmail());
+        return persistedCostCenter;
     }
 
     @Override
@@ -60,15 +56,15 @@ public class CostCenterService implements EditCostCenterUseCase {
     @Override
     public void assignProjectToCostCenter(AssignCostCenterToUserRequest request) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        final var getProjectResponse = getProjectUseCase.getProject(request.projectKey());
+        final var project = getProjectUseCase.getProject(request.projectKey());
         final var newCostCenter = costCenterRepository.findById(request.costCenterId())
                 .orElseThrow(() -> NotFoundException.notFound("CostCenter", String.valueOf(request.costCenterId()), currentUserApi.currentEmail()));
-        final var oldCostCenter = costCenterRepository.findByProject(getProjectResponse.project());
+        final var oldCostCenter = costCenterRepository.findByProject(project);
         if (oldCostCenter.isPresent()) {
-            oldCostCenter.get().removeProject(getProjectResponse.project());
+            oldCostCenter.get().removeProject(project);
             costCenterRepository.save(oldCostCenter.get());
         }
-        newCostCenter.addProject(getProjectResponse.project());
+        newCostCenter.addProject(project);
         costCenterRepository.save(newCostCenter);
         log.info("Project {} assigned to cost center {} by {}", request.projectKey(), newCostCenter.getId(), currentUserApi.currentEmail());
     }
@@ -76,12 +72,12 @@ public class CostCenterService implements EditCostCenterUseCase {
     @Override
     public void unassignProjectFromCostCenter(String projectKey) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        final var getProjectResponse = getProjectUseCase.getProject(projectKey);
-        final var oldCostCenter = costCenterRepository.findByProject(getProjectResponse.project());
+        final var project = getProjectUseCase.getProject(projectKey);
+        final var oldCostCenter = costCenterRepository.findByProject(project);
         if (oldCostCenter.isEmpty()) {
             return;
         }
-        oldCostCenter.get().removeProject(getProjectResponse.project());
+        oldCostCenter.get().removeProject(project);
         costCenterRepository.save(oldCostCenter.get());
         log.info("Project {} removed from cost center {} by {}", projectKey, oldCostCenter.get().getId(), currentUserApi.currentEmail());
     }

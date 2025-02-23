@@ -7,5 +7,5 @@ import org.springframework.stereotype.Controller;
 @RequiredArgsConstructor
 @SuppressWarnings("SameReturnValue")
 public class BillController {
-//TODO BILLING: Implement UI
+//TODO: Implement Billing UI
 }

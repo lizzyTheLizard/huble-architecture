@@ -9,7 +9,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.Optional;
@@ -27,10 +26,6 @@ class UpdateUserUseCaseTest {
 
     @MockitoBean
     private UserRepository userRepository;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // used implicitly through injection
-    private ProjectRepository projectRepository;
 
     private User currentUser;
 

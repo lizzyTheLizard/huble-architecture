@@ -6,9 +6,9 @@ import site.gutschi.humble.spring.billing.model.Bill;
 import site.gutschi.humble.spring.billing.model.BillingPeriod;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
+import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
 import site.gutschi.humble.spring.billing.usecases.ShowBillsUseCase;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 
 import java.util.Set;
 
@@ -18,12 +18,13 @@ public class BillService implements ShowBillsUseCase {
     private final BillRepository billRepository;
     private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
-    private final CurrentUserApi currentUserApi;
+    private final BillingPeriodRepository billingPeriodRepository;
 
 
     @Override
     public Set<BillingPeriod> getAllBillingPeriods() {
-        return Set.of();
+        canAccessBillingPolicy.ensureCanAccessBilling();
+        return billingPeriodRepository.findAll();
     }
 
     @Override

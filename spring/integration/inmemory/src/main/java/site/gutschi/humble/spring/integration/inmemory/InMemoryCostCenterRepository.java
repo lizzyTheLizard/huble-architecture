@@ -26,14 +26,14 @@ public class InMemoryCostCenterRepository implements CostCenterRepository {
     public CostCenter save(CostCenter costCenter) {
         if (costCenter.getId() != null)
             costCenters.removeIf(c -> c.getId().equals(costCenter.getId()));
-        final var result = new CostCenter(
-                costCenter.getId() != null ? costCenter.getId() : nextId++,
-                costCenter.getName(),
-                costCenter.getAddress(),
-                costCenter.getEmail(),
-                costCenter.isDeleted(),
-                costCenter.getProjects()
-        );
+        final var result = CostCenter.builder()
+                .id(costCenter.getId() != null ? costCenter.getId() : nextId++)
+                .name(costCenter.getName())
+                .address(costCenter.getAddress())
+                .email(costCenter.getEmail())
+                .deleted(costCenter.isDeleted())
+                .projects(costCenter.getProjects())
+                .build();
         costCenters.add(result);
         return result;
     }

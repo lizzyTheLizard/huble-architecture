@@ -3,8 +3,7 @@ package site.gutschi.humble.spring.users.model;
 public enum ProjectRoleType {
     ADMIN,
     DEVELOPER,
-    STAKEHOLDER,
-    ;
+    STAKEHOLDER;
 
     @SuppressWarnings("SameReturnValue")
     public boolean canRead() {

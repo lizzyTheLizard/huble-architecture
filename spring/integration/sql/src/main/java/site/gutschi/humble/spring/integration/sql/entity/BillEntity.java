@@ -16,23 +16,24 @@ import java.util.stream.Collectors;
 @Entity(name = "bill")
 public class BillEntity {
     @Id
-    private int id;
-    @ManyToOne
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotNull
     private CostCenterEntity costCenter;
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private BillingPeriodEntity billingPeriod;
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "bill")
     private Set<ProjectBillEntity> projectBills;
 
     public static BillEntity fromModel(Bill bill, ProjectEntityRepository projectEntityRepository) {
         final var entity = new BillEntity();
         entity.setId(bill.id());
-        entity.setCostCenter(CostCenterEntity.fromModel(bill.costCenter()));
+        entity.setCostCenter(CostCenterEntity.fromModel(bill.costCenter(), projectEntityRepository));
         entity.setBillingPeriod(BillingPeriodEntity.fromModel(bill.billingPeriod()));
         entity.setProjectBills(bill.projectBills().stream()
-                .map((ProjectBill pb) -> ProjectBillEntity.fromModel(pb, projectEntityRepository))
+                .map((ProjectBill pb) -> ProjectBillEntity.fromModel(pb, entity, projectEntityRepository))
                 .collect(Collectors.toSet())
         );
         return entity;

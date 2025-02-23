@@ -1,7 +1,7 @@
 package site.gutschi.humble.spring.tasks.model;
 
-//Used implicitly through UI
-@SuppressWarnings("unused")
+
+@SuppressWarnings("unused") //Used implicitly through UI
 public enum TaskStatus {
     FUNNEL,
     READY,

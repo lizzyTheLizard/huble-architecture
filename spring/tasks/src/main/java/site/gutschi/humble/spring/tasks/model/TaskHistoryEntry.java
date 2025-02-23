@@ -8,7 +8,7 @@ import java.time.Instant;
 public record TaskHistoryEntry(String user, Instant timestamp,
                                TaskHistoryType type, String field,
                                String oldValue, String newValue) {
-    @SuppressWarnings("unused") // Used in Thymeleaf templates
+    @SuppressWarnings("unused") //Used implicitly through UI
     //TODO: Internationalization
     public String description() {
         return switch (type) {

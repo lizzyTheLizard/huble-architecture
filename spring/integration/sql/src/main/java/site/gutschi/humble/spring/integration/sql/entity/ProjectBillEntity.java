@@ -17,7 +17,7 @@ public class ProjectBillEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotNull
     private ProjectEntity project;
     @NotNull
@@ -27,14 +27,18 @@ public class ProjectBillEntity {
     private long totalNonDeletedTasks;
     @PositiveOrZero
     private long createdTasks;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotNull
+    private BillEntity bill;
 
-    public static ProjectBillEntity fromModel(ProjectBill pb, ProjectEntityRepository projectEntityRepository) {
+    public static ProjectBillEntity fromModel(ProjectBill pb, BillEntity bill, ProjectEntityRepository projectEntityRepository) {
         final var entity = new ProjectBillEntity();
 
         entity.setProject(projectEntityRepository.getReferenceById(pb.project().getKey()));
         entity.setAmount(pb.amount());
         entity.setTotalNonDeletedTasks(pb.totalNonDeletedTasks());
         entity.setCreatedTasks(pb.createdTasks());
+        entity.setBill(bill);
         return entity;
     }
 

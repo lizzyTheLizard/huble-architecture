@@ -8,10 +8,10 @@ import site.gutschi.humble.spring.integration.sql.entity.BillingPeriodEntity;
 import site.gutschi.humble.spring.integration.sql.repo.BillingPeriodEntityRepository;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-//TODO BILLING: Test JpaBillingPeriodRepository
 public class JpaBillingPeriodRepository implements BillingPeriodRepository {
     private final BillingPeriodEntityRepository billingPeriodEntityRepository;
 
@@ -25,5 +25,12 @@ public class JpaBillingPeriodRepository implements BillingPeriodRepository {
     public BillingPeriod save(BillingPeriod billingPeriod) {
         final var entity = BillingPeriodEntity.fromModel(billingPeriod);
         return billingPeriodEntityRepository.save(entity).toModel();
+    }
+
+    @Override
+    public Set<BillingPeriod> findAll() {
+        return billingPeriodEntityRepository.findAll().stream()
+                .map(BillingPeriodEntity::toModel)
+                .collect(java.util.stream.Collectors.toSet());
     }
 }
