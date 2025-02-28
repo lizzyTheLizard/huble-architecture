@@ -1,0 +1,15 @@
+site.gutschi.humble.spring:
+  billing:
+    costsPerTask: 0.10
+    costsPerCreatedTask: 0.50
+  integration:
+    db:
+      url: jdbc:postgresql://localhost:5432/tasks
+      username: postgres
+      password: postgres
+    solr:
+      url: http://localhost:8983/solr/tasks
+    keycloak:
+      url: http://localhost:8090/realms/TestExample
+    thymeleaf:
+      stacktrace: true

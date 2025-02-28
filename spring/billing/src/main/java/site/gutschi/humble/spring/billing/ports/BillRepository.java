@@ -8,11 +8,13 @@ public interface BillRepository {
     /**
      * Returns all bills for a given period.
      */
+    //TODO Modelling: Use Billing Period instead of int
     Set<Bill> findAllForPeriod(int billingPeriodId);
 
     /**
      * Returns all bills for a given cost center.
      */
+    //TODO Modelling: Use CostCenter instead of int
     Set<Bill> findAllForCostCenter(int costCenterId);
 
     /**

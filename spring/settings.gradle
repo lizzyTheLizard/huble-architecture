@@ -1,12 +1,14 @@
 rootProject.name = name
 include "common"
+include "common-test"
 include "tasks"
 include "users"
 include "billing"
 include "integration:inmemory"
 include "integration:solr"
 include "integration:inmemory"
-include "integration:ui"
+include "integration:thymeleaf"
+include "integration:keycloak"
 include "integration:sql"
 include "integration:application"
 

@@ -20,6 +20,7 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 import java.util.List;
 import java.util.stream.IntStream;
 
+// TODO Configuration: Make use of immemory database configurable
 @Service
 @RequiredArgsConstructor
 public class InMemoryInitializer {

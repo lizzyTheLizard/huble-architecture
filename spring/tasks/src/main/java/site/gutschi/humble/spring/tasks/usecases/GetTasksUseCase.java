@@ -8,5 +8,7 @@ public interface GetTasksUseCase {
     /**
      * Get all tasks for a project
      */
+    //TODO Modelling: Use Project instead of String
+    //TODO API: Separate API and UseCse
     Set<Task> getTasksForProject(String projectKey);
 }

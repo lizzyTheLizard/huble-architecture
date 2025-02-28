@@ -16,14 +16,13 @@ dependencies {
     implementation project(":tasks")
     implementation project(":users")
     implementation project(":integration:sql")
-    implementation project(":integration:ui")
+    implementation project(":integration:thymeleaf")
+    implementation project(":integration:keycloak")
     implementation project(":integration:solr")
     developmentOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation "org.testcontainers:testcontainers"
     // Fix vulnerabilities in testcontainers
     testImplementation 'org.apache.commons:commons-compress:1.26.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation project(":common-test")
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }

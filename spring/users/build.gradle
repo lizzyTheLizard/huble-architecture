@@ -6,4 +6,5 @@ dependencies {
     }
     implementation project(":common")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation project(":common-test")
 }

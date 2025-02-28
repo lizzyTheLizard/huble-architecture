@@ -4,15 +4,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.test.PostgresContainer;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
@@ -26,26 +26,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 class JpaCostCenterRepositoryTest {
     @Container
-    @ServiceConnection
-    @SuppressWarnings("resource") // Closed by Spring
-    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
-            .withDatabaseName("test")
-            .withUsername("postgres")
-            .withPassword("password");
-
+    static final PostgresContainer container = new PostgresContainer();
     @Autowired
     private CostCenterRepository costCenterRepository;
-
     @Autowired
     private ProjectRepository projectRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @MockitoBean
     private CurrentUserApi currentUserApi;
-
     private Project project;
+
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        container.registerProperties(registry);
+    }
 
     @BeforeEach
     void setup() {

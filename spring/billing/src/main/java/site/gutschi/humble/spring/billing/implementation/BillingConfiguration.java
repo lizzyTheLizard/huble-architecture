@@ -6,11 +6,12 @@ import org.springframework.context.annotation.Configuration;
 
 import java.math.BigDecimal;
 
+
 @Configuration
 @Data
 public class BillingConfiguration {
-    @Value("${billing.costsPerTask}")
+    @Value("${site.gutschi.humble.spring.billing.costsPerTask}")
     private BigDecimal costsPerTask;
-    @Value("${billing.costsPerCreatedTask}")
+    @Value("${site.gutschi.humble.spring.billing.costsPerCreatedTask}")
     private BigDecimal costsPerCreatedTask;
 }

@@ -12,6 +12,8 @@ public interface GetProjectUseCase {
      *
      * @throws NotFoundException If the project does not exist or is invisible to the user.
      */
+    //TODO Modelling: Use Project instead of String
+    //TODO API: Separate API and UseCse
     Project getProject(String projectKey);
 
     /**
@@ -19,5 +21,6 @@ public interface GetProjectUseCase {
      *
      * @return All projects the user is allowed to manage.
      */
+    //TODO API: Separate API and UseCse
     Set<Project> getAllProjects();
 }

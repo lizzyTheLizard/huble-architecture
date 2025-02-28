@@ -12,6 +12,7 @@ import java.util.*;
  * A single task. It can be created, edited and deleted. Comments can be added to the task.
  * A task will keep a journal of each change.
  */
+//TODO Modelling: Use User instead of String
 public class Task {
     private final CurrentUserApi currentUserApi;
     private final int id;

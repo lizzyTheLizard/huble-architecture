@@ -9,6 +9,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.common.test.SolrContainer;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
@@ -23,16 +24,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 public class SolrTests {
     @Container
-    static final SolrContainer container = new SolrContainer("solr");
+    static final SolrContainer container = new SolrContainer().withConfigDir("solr");
     @Autowired
     private SolrCaller target;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
-        registry.add("solr.url", () -> String.format("http://%s:%d/solr/%s",
-                container.getHost(),
-                container.getMappedPort(SolrContainer.SOLR_PORT),
-                SolrContainer.COLLECTION_NAME));
+        container.registerProperties(registry);
     }
 
     @Test

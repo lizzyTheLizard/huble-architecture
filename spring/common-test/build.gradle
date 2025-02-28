@@ -1,0 +1,10 @@
+dependencies {
+    implementation project(':common')
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation "org.testcontainers:testcontainers"
+    // Fix vulnerabilities in testcontainers
+    implementation 'org.apache.commons:commons-compress:1.26.0'
+    implementation 'org.testcontainers:junit-jupiter'
+    implementation 'org.springframework.boot:spring-boot-testcontainers'
+}

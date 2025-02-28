@@ -28,6 +28,7 @@ public interface TaskRepository {
      * @param projectKey The key of the project
      * @return The next ID
      */
+    //TODO Modelling: Use Project instead of String
     int nextId(String projectKey);
 
     /**
