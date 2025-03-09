@@ -38,7 +38,7 @@ public class InMemoryProjectRepository implements ProjectRepository {
     @Override
     public Set<Project> findAllForUser(User user) {
         return projects.stream()
-                .filter(p -> p.getRole(user.getEmail()).isPresent())
+                .filter(p -> p.getRole(user).isPresent())
                 .collect(Collectors.toUnmodifiableSet());
     }
 }

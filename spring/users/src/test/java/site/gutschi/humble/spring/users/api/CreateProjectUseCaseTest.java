@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,12 +7,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
@@ -27,7 +27,7 @@ class CreateProjectUseCaseTest {
     private CreateProjectUseCase target;
 
     @MockitoBean
-    private CurrentUserApi currentUserApi;
+    private CurrentUserInformation currentUserInformation;
 
     @MockitoBean
     private ProjectRepository projectRepository;
@@ -40,13 +40,13 @@ class CreateProjectUseCaseTest {
 
         @Test
         void systemAdmin() {
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
             assertThat(target.canCreateProject()).isTrue();
         }
 
         @Test
         void nonSystemAdmin() {
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
             assertThat(target.canCreateProject()).isFalse();
         }
     }
@@ -59,11 +59,11 @@ class CreateProjectUseCaseTest {
         @BeforeEach
         void setup() {
             currentUser = User.builder().email("dev@example.com").name("Hans").build();
-            testProject = Project.createNew("PRO", "Test Project", currentUser, currentUserApi);
+            testProject = Project.createNew("PRO", "Test Project", currentUser);
             Mockito.when(projectRepository.findByKey("PRO")).thenReturn(Optional.empty());
             Mockito.when(userRepository.findByMail(currentUser.getEmail())).thenReturn(Optional.of(currentUser));
-            Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(currentUser);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
         }
 
         @Test
@@ -76,7 +76,7 @@ class CreateProjectUseCaseTest {
 
         @Test
         void notAllowed() {
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
             final var request = new CreateProjectUseCase.CreateProjectRequest("PRO", "Test Project");
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.createProject(request));
@@ -94,7 +94,7 @@ class CreateProjectUseCaseTest {
             assertThat(response.isActive()).isTrue();
             assertThat(response.getEstimations()).containsExactly(1, 3, 5);
             assertThat(response.getProjectRoles()).hasSize(1);
-            assertThat(response.getRole(currentUser.getEmail())).contains(ProjectRoleType.ADMIN);
+            assertThat(response.getRole(currentUser)).contains(ProjectRoleType.ADMIN);
             assertThat(response.getHistoryEntries()).hasSize(1);
         }
     }

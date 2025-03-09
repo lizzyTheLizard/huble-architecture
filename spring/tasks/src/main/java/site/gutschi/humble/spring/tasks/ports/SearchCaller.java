@@ -1,7 +1,7 @@
 package site.gutschi.humble.spring.tasks.ports;
 
+import site.gutschi.humble.spring.tasks.api.ViewTasksUseCase;
 import site.gutschi.humble.spring.tasks.model.Task;
-import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.Collection;

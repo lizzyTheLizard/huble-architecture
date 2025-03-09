@@ -37,6 +37,9 @@ class JpaBillingPeriodRepositoryTest {
         assertThat(result.dueDate()).isEqualTo(billingPeriod.dueDate());
         assertThat(result.createdDate()).isEqualTo(billingPeriod.createdDate());
         assertThat(result.start()).isEqualTo(billingPeriod.start());
+
+        final var result2 = billingPeriodRepository.findById(result.id());
+        assertThat(result2).contains(result);
     }
 
     @Test

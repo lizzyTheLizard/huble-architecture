@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.billing.model.Bill;
@@ -16,7 +15,6 @@ import site.gutschi.humble.spring.billing.model.ProjectBill;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.test.PostgresContainer;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
@@ -46,8 +44,6 @@ class JpaBillRepositoryTest {
     private ProjectRepository projectRepository;
     @Autowired
     private BillingPeriodRepository billingPeriodRepository;
-    @MockitoBean
-    private CurrentUserApi currentUserApi;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
@@ -75,9 +71,9 @@ class JpaBillRepositoryTest {
 
     @Test
     void saveAndReload() {
-        final var user = new User("dev@example.com", "Hans");
+        final var user = User.builder().email("dev@example.com").name("Hans").build();
         userRepository.save(user);
-        final var project = Project.createNew("TEST", "Test Project", user, currentUserApi);
+        final var project = Project.createNew("TEST", "Test Project", user);
         projectRepository.save(project);
         final var costCenter = costCenterRepository.save(CostCenter.create("Cost Center", List.of("A11", "A2"), "cc@example.com"));
         final var billingPeriod = billingPeriodRepository.save(BillingPeriod.create(LocalDate.of(2020, 1, 1)));
@@ -86,10 +82,10 @@ class JpaBillRepositoryTest {
 
         billRepository.save(bill);
 
-        final var pResult = billRepository.findAllForPeriod(billingPeriod.id());
+        final var pResult = billRepository.findAllForPeriod(billingPeriod);
         assertThat(pResult).singleElement().satisfies(isEqualTo(bill));
 
-        final var ccResult = billRepository.findAllForCostCenter(costCenter.getId());
+        final var ccResult = billRepository.findAllForCostCenter(costCenter);
         assertThat(ccResult).singleElement().satisfies(isEqualTo(bill));
     }
 }

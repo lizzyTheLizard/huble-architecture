@@ -1,20 +1,20 @@
 package site.gutschi.humble.spring.integration.solr;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.test.SolrContainer;
+import site.gutschi.humble.spring.tasks.api.ViewTasksUseCase;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
-import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.List;
 
@@ -28,47 +28,57 @@ public class SolrTests {
     @Autowired
     private SolrCaller target;
 
+    private User currentUser;
+    private Project testProject;
+    private SearchCaller.SearchCallerRequest request;
+    private Task task1;
+    private Task task2;
+
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
         container.registerProperties(registry);
     }
 
-    @Test
-    void emptyIndex() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var request = new SearchCaller.SearchCallerRequest("test", 1, 10, List.of(project));
+    @BeforeEach
+    void setup() {
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        testProject = Project.createNew("PRO", "Test Project", currentUser);
         target.clear();
+        task1 = Task.builder()
+                .creator(currentUser)
+                .status(TaskStatus.FUNNEL)
+                .project(testProject)
+                .id(1)
+                .description("A potential long description of the Task with special String STR1")
+                .title("The Title of the Task without special string")
+                .build();
+        task2 = Task.builder()
+                .creator(currentUser)
+                .status(TaskStatus.FUNNEL)
+                .project(testProject)
+                .id(2)
+                .description("A potential long description of the Task with special String STR2")
+                .title("The Title of the Task with special string STR1")
+                .build();
+        target.informUpdatedTasks(task1, task2);
+        request = new SearchCaller.SearchCallerRequest(task1.getKey().toString(), 1, 10, List.of(testProject));
+    }
 
-        final var response = target.findTasks(request);
-
-        assertThat(response.total()).isEqualTo(0);
-        assertThat(response.tasks()).isEmpty();
+    private ViewTasksUseCase.TaskFindView toView(Task task) {
+        return new ViewTasksUseCase.TaskFindView(task.getKey(), task.getTitle(), task.getAssignee().map(User::getEmail).orElse(null), task.getStatus());
     }
 
     @Test
-    void findTaskByKey() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task = createTask(1);
-        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        target.clear();
-        target.informUpdatedTasks(task);
-
+    void findExistingTask() {
         final var response = target.findTasks(request);
 
         assertThat(response.total()).isEqualTo(1);
-        assertThat(response.tasks()).containsExactly(toView(task));
+        assertThat(response.tasks()).containsExactly(toView(task1));
     }
 
     @Test
-    void delete() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task = createTask(1);
-        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        target.informUpdatedTasks(task);
-        target.informDeletedTasks(task);
+    void deleted() {
+        target.informDeletedTasks(task1);
 
         final var response = target.findTasks(request);
 
@@ -77,12 +87,7 @@ public class SolrTests {
     }
 
     @Test
-    void clear() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task = createTask(1);
-        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        target.informUpdatedTasks(task);
+    void cleared() {
         target.clear();
 
         final var response = target.findTasks(request);
@@ -93,12 +98,8 @@ public class SolrTests {
 
     @Test
     void onlyAllowedProjects() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("OTHER");
-        final var task = createTask(1);
-        final var request = new SearchCaller.SearchCallerRequest("PRO-1", 1, 10, List.of(project));
-        target.clear();
-        target.informUpdatedTasks(task);
+        final var otherProject = Project.createNew("OTHER", "Test Project", currentUser);
+        final var request = new SearchCaller.SearchCallerRequest(task1.getKey().toString(), 1, 10, List.of(otherProject));
 
         final var response = target.findTasks(request);
 
@@ -107,14 +108,8 @@ public class SolrTests {
     }
 
     @Test
-    void findTaskByDescription() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task1 = createTask(1);
-        final var task2 = createTask(2);
-        final var request = new SearchCaller.SearchCallerRequest("STR2", 1, 10, List.of(project));
-        target.clear();
-        target.informUpdatedTasks(task1, task2);
+    void findByDescription() {
+        final var request = new SearchCaller.SearchCallerRequest("STR2", 1, 10, List.of(testProject));
 
         final var response = target.findTasks(request);
 
@@ -123,14 +118,8 @@ public class SolrTests {
     }
 
     @Test
-    void findTaskByDescriptionAndTitle() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task1 = createTask(1);
-        final var task2 = createTask(2);
-        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 10, List.of(project));
-        target.clear();
-        target.informUpdatedTasks(task1, task2);
+    void findByDescriptionAndTitle() {
+        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 10, List.of(testProject));
 
         final var response = target.findTasks(request);
 
@@ -138,44 +127,18 @@ public class SolrTests {
         assertThat(response.tasks()).containsExactly(toView(task2), toView(task1));
     }
 
-
     @Test
     void pagination() {
-        final var project = Mockito.mock(Project.class);
-        Mockito.when(project.getKey()).thenReturn("PRO");
-        final var task1 = createTask(1);
-        final var task2 = createTask(2);
-        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 1, List.of(project));
-        final var request2 = new SearchCaller.SearchCallerRequest("STR1", 2, 1, List.of(project));
-        target.clear();
-        target.informUpdatedTasks(task1, task2);
-
+        final var request = new SearchCaller.SearchCallerRequest("STR1", 1, 1, List.of(testProject));
         final var response = target.findTasks(request);
 
         assertThat(response.total()).isEqualTo(2);
         assertThat(response.tasks()).containsExactly(toView(task2));
 
+        final var request2 = new SearchCaller.SearchCallerRequest("STR1", 2, 1, List.of(testProject));
         final var response2 = target.findTasks(request2);
 
         assertThat(response2.total()).isEqualTo(2);
         assertThat(response2.tasks()).containsExactly(toView(task1));
-    }
-
-
-    private Task createTask(int i) {
-        return Task.builder()
-                .currentUserApi(Mockito.mock(CurrentUserApi.class))
-                .creatorEmail("test@example.com")
-                .status(TaskStatus.FUNNEL)
-                .projectKey("PRO")
-                .id(i)
-                .description("A potential long description of the Task STR" + i)
-                .title("The Title of the Task STR" + (i - 1))
-                .build();
-
-    }
-
-    private ViewTasksUseCase.TaskFindView toView(Task task) {
-        return new ViewTasksUseCase.TaskFindView(task.getKey(), task.getTitle(), task.getAssigneeEmail().orElse(null), task.getStatus());
     }
 }

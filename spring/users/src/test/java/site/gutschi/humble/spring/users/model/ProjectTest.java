@@ -2,8 +2,6 @@ package site.gutschi.humble.spring.users.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.time.Instant;
@@ -11,146 +9,107 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProjectTest {
-    private static final String USER = "TestUser";
-    private static final CurrentUserApi USER_API = Mockito.mock(CurrentUserApi.class);
-    private static final Instant NOW = Instant.now();
+    private Instant now;
+    private User currentUser;
+    private User newUser;
+    private Project project;
 
     @BeforeEach
     void setUp() {
-        Mockito.when(USER_API.currentEmail()).thenReturn(USER);
-        Mockito.when(USER_API.isSystemAdmin()).thenReturn(false);
-        TimeHelper.setNow(NOW);
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        final var owner = User.builder().email("owner@example.com").name("Owner").build();
+        newUser = User.builder().email("new@example.com").name("New").build();
+        project = Project.createNew("KEY", "Name", owner);
+        now = Instant.now();
+        TimeHelper.setNow(now);
     }
 
     @Test
     void setName() {
         final var newName = "New Name";
-        final var project = createProject();
         final var oldName = project.getName();
 
-        project.setName(newName);
+        project.setName(newName, currentUser);
 
-        assertThat(project.getName())
-                .isEqualTo(newName);
-        assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.NAME_CHANGED, null, oldName, newName));
+        assertThat(project.getName()).isEqualTo(newName);
+        assertThat(project.getHistoryEntries()).contains(new ProjectHistoryEntry(currentUser, now, ProjectHistoryType.NAME_CHANGED, null, oldName, newName));
     }
 
     @Test
     void setName_ignoreUnchanged() {
-        final var project = createProject();
         final var oldName = project.getName();
         final var historySize = project.getHistoryEntries().size();
 
-        project.setName(oldName);
+        project.setName(oldName, currentUser);
 
-        assertThat(project.getHistoryEntries())
-                .hasSize(historySize);
+        assertThat(project.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setActive() {
-        final var project = createProject();
+        project.setActive(false, currentUser);
 
-        project.setActive(false);
-
-        assertThat(project.isActive())
-                .isEqualTo(false);
-        assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.ACTIVATE_CHANGED, null, "true", "false"));
+        assertThat(project.isActive()).isEqualTo(false);
+        assertThat(project.getHistoryEntries()).contains(new ProjectHistoryEntry(currentUser, now, ProjectHistoryType.ACTIVATE_CHANGED, null, "true", "false"));
     }
 
     @Test
     void setActive_ignoreUnchanged() {
-        final var project = createProject();
         final var historySize = project.getHistoryEntries().size();
 
-        project.setActive(true);
+        project.setActive(true, currentUser);
 
-        assertThat(project.getHistoryEntries())
-                .hasSize(historySize);
+        assertThat(project.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setUserRole_newUser() {
-        final var project = createProject();
-        final var user = new User("user@example.com", "user");
+        project.setUserRole(newUser, ProjectRoleType.ADMIN, currentUser);
 
-        project.setUserRole(user, ProjectRoleType.ADMIN);
-
-        assertThat(project.getProjectRoles())
-                .contains(new ProjectRole(user, ProjectRoleType.ADMIN));
-        assertThat(project.getRole(user.getEmail()))
-                .contains(ProjectRoleType.ADMIN);
-        assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ADDED, user.getEmail(), null, ProjectRoleType.ADMIN.name()));
+        assertThat(project.getProjectRoles()).contains(new ProjectRole(newUser, ProjectRoleType.ADMIN));
+        assertThat(project.getRole(newUser)).contains(ProjectRoleType.ADMIN);
+        assertThat(project.getHistoryEntries()).contains(new ProjectHistoryEntry(currentUser, now, ProjectHistoryType.USER_ADDED, newUser, null, ProjectRoleType.ADMIN.name()));
     }
 
     @Test
     void setUserRole_changedUser() {
-        final var project = createProject();
-        final var user = new User("user@example.com", "user");
-        project.setUserRole(user, ProjectRoleType.ADMIN);
+        project.setUserRole(newUser, ProjectRoleType.ADMIN, currentUser);
 
-        project.setUserRole(user, ProjectRoleType.STAKEHOLDER);
+        project.setUserRole(newUser, ProjectRoleType.STAKEHOLDER, currentUser);
 
-        assertThat(project.getProjectRoles())
-                .contains(new ProjectRole(user, ProjectRoleType.STAKEHOLDER));
-        assertThat(project.getRole(user.getEmail()))
-                .contains(ProjectRoleType.STAKEHOLDER);
-        assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_ROLE_CHANGED, user.getEmail(), ProjectRoleType.ADMIN.name(), ProjectRoleType.STAKEHOLDER.name()));
+        assertThat(project.getProjectRoles()).contains(new ProjectRole(newUser, ProjectRoleType.STAKEHOLDER));
+        assertThat(project.getRole(newUser)).contains(ProjectRoleType.STAKEHOLDER);
+        assertThat(project.getHistoryEntries()).contains(new ProjectHistoryEntry(currentUser, now, ProjectHistoryType.USER_ROLE_CHANGED, newUser, ProjectRoleType.ADMIN.name(), ProjectRoleType.STAKEHOLDER.name()));
     }
 
     @Test
     void setUserRole_unchangedUser() {
-        final var project = createProject();
-        final var user = new User("user@example.com", "user");
-        project.setUserRole(user, ProjectRoleType.ADMIN);
+        project.setUserRole(newUser, ProjectRoleType.ADMIN, currentUser);
         final var historySize = project.getHistoryEntries().size();
 
-        project.setUserRole(user, ProjectRoleType.ADMIN);
+        project.setUserRole(newUser, ProjectRoleType.ADMIN, currentUser);
 
-        assertThat(project.getHistoryEntries())
-                .hasSize(historySize);
+        assertThat(project.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void removeUserRole() {
-        final var project = createProject();
-        final var user = new User("user@example.com", "user");
-        project.setUserRole(user, ProjectRoleType.ADMIN);
+        project.setUserRole(newUser, ProjectRoleType.ADMIN, currentUser);
 
-        project.removeUserRole(user);
+        project.removeUserRole(newUser, currentUser);
 
-        assertThat(project.getProjectRoles())
-                .doesNotContain(new ProjectRole(user, ProjectRoleType.ADMIN));
-        assertThat(project.getRole(user.getEmail()))
-                .isEmpty();
-        assertThat(project.getHistoryEntries())
-                .contains(new ProjectHistoryEntry(USER, NOW, ProjectHistoryType.USER_REMOVED, user.getEmail(), ProjectRoleType.ADMIN.name(), null));
+        assertThat(project.getProjectRoles()).doesNotContain(new ProjectRole(newUser, ProjectRoleType.ADMIN));
+        assertThat(project.getRole(newUser)).isEmpty();
+        assertThat(project.getHistoryEntries()).contains(new ProjectHistoryEntry(currentUser, now, ProjectHistoryType.USER_REMOVED, newUser, ProjectRoleType.ADMIN.name(), null));
     }
 
     @Test
     void removeUserRole_unchangedUser() {
-        final var project = createProject();
-        final var user = new User("user@example.com", "user");
-        project.removeUserRole(user);
+        project.removeUserRole(newUser, currentUser);
         final var historySize = project.getHistoryEntries().size();
 
-        project.removeUserRole(user);
+        project.removeUserRole(newUser, currentUser);
 
-        assertThat(project.getHistoryEntries())
-                .hasSize(historySize);
-    }
-
-    private Project createProject() {
-        return Project.builder()
-                .currentUserApi(USER_API)
-                .key("key")
-                .name("name")
-                .active(true)
-                .projectRole(new ProjectRole(new User("B", "a"), ProjectRoleType.ADMIN))
-                .build();
+        assertThat(project.getHistoryEntries()).hasSize(historySize);
     }
 }

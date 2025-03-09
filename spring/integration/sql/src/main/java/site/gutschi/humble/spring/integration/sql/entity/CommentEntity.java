@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-import site.gutschi.humble.spring.integration.sql.repo.UserEntityRepository;
-import site.gutschi.humble.spring.tasks.model.Comment;
 
 import java.time.Instant;
 
@@ -23,17 +21,4 @@ public class CommentEntity {
     @NotBlank
     private String text;
     private Instant timestamp;
-
-    public static CommentEntity fromModel(Comment comment, TaskEntity task, UserEntityRepository repository) {
-        final var entity = new CommentEntity();
-        entity.setTask(task);
-        entity.setUser(repository.getReferenceById(comment.user()));
-        entity.setText(comment.text());
-        entity.setTimestamp(comment.timestamp());
-        return entity;
-    }
-
-    public Comment toModel() {
-        return new Comment(user.getEmail(), timestamp, text);
-    }
 }

@@ -8,7 +8,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -20,18 +21,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class IndexTests {
     @MockitoBean
-    CurrentUserApi currentUserApi;
+    CurrentUserInformation currentUserInformation;
     @Autowired
     private MockMvc mvc;
 
     @BeforeEach
     public void setup() {
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+        final var currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(currentUser);
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
     }
 
     @Test
     public void language() throws Exception {
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
         mvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<html lang=\"en\">")));
@@ -39,7 +42,7 @@ public class IndexTests {
 
     @Test
     public void systemUser() throws Exception {
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
         mvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Create new Task")))
@@ -48,6 +51,16 @@ public class IndexTests {
 
     @Test
     public void user() throws Exception {
+        mvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Create new Task")))
+                .andExpect(content().string(not(containsString("Create new Project"))));
+    }
+
+    @Test
+    public void userWithoutProject() throws Exception {
+        final var otherUser = User.builder().email("other@example.com").name("Hans").build();
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(otherUser);
         mvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("Create new Task"))))

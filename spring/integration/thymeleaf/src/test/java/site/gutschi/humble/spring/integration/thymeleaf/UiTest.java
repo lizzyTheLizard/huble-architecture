@@ -2,7 +2,7 @@ package site.gutschi.humble.spring.integration.thymeleaf;
 
 import org.junit.jupiter.api.Test;
 
-//TODO UI: Implement UI Tests
+//TODO TEST: Implement UI tests
 class UiTest {
     @Test
     @SuppressWarnings("EmptyMethod")

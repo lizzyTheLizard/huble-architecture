@@ -3,7 +3,6 @@ package site.gutschi.humble.spring.users.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 
 import java.util.*;
@@ -15,7 +14,6 @@ import java.util.*;
  * At least one user must be an admin.
  */
 public class Project {
-    private final CurrentUserApi currentUserApi;
     @Getter
     private final String key;
     @Singular
@@ -30,8 +28,7 @@ public class Project {
     private boolean active;
 
     @Builder
-    public Project(CurrentUserApi currentUserApi, String key, String name, boolean active, @Singular Collection<Integer> estimations, @Singular Collection<ProjectRole> projectRoles, @Singular Collection<ProjectHistoryEntry> historyEntries) {
-        this.currentUserApi = currentUserApi;
+    private Project(String key, String name, boolean active, @Singular Collection<Integer> estimations, @Singular Collection<ProjectRole> projectRoles, @Singular Collection<ProjectHistoryEntry> historyEntries) {
         this.key = key;
         this.name = name;
         this.active = active;
@@ -40,17 +37,15 @@ public class Project {
         this.estimations = new HashSet<>(estimations);
     }
 
-
-    public static Project createNew(String key, String name, User owner, CurrentUserApi currentUserApi) {
+    public static Project createNew(String key, String name, User owner) {
         final var initialAdminRole = new ProjectRole(owner, ProjectRoleType.ADMIN);
         final var historyEntry = ProjectHistoryEntry.builder()
-                .user(owner.getEmail())
+                .user(owner)
                 .timestamp(TimeHelper.now())
                 .type(ProjectHistoryType.CREATED)
                 .build();
         return Project.builder()
                 .key(key)
-                .currentUserApi(currentUserApi)
                 .name(name)
                 .projectRole(initialAdminRole)
                 .estimation(1)
@@ -61,10 +56,10 @@ public class Project {
                 .build();
     }
 
-    public void setName(String name) {
+    public void setName(String name, User currentUser) {
         if (name.equals(this.name)) return;
         final var historyEntry = ProjectHistoryEntry.builder()
-                .user(currentUserApi.currentEmail())
+                .user(currentUser)
                 .timestamp(TimeHelper.now())
                 .type(ProjectHistoryType.NAME_CHANGED)
                 .oldValue(this.name)
@@ -74,10 +69,10 @@ public class Project {
         historyEntries.add(historyEntry);
     }
 
-    public void setActive(boolean active) {
+    public void setActive(boolean active, User currentUser) {
         if (active == this.active) return;
         final var historyEntry = ProjectHistoryEntry.builder()
-                .user(currentUserApi.currentEmail())
+                .user(currentUser)
                 .timestamp(TimeHelper.now())
                 .type(ProjectHistoryType.ACTIVATE_CHANGED)
                 .oldValue(String.valueOf(this.active))
@@ -87,16 +82,16 @@ public class Project {
         historyEntries.add(historyEntry);
     }
 
-    public void setUserRole(User user, ProjectRoleType type) {
+    public void setUserRole(User user, ProjectRoleType type, User currentUser) {
         final var existingRole = projectRoles.stream()
                 .filter(projectRole -> projectRole.user().equals(user))
                 .findFirst();
         if (existingRole.isEmpty()) {
             final var historyEntry = ProjectHistoryEntry.builder()
-                    .user(currentUserApi.currentEmail())
+                    .user(currentUser)
                     .timestamp(TimeHelper.now())
                     .type(ProjectHistoryType.USER_ADDED)
-                    .affectedUser(user.getEmail())
+                    .affectedUser(user)
                     .newValue(type.name())
                     .build();
             projectRoles.add(new ProjectRole(user, type));
@@ -108,16 +103,16 @@ public class Project {
         projectRoles.add(new ProjectRole(user, type));
         if (type == existingRole.get().type()) return;
         final var historyEntryBuilder = ProjectHistoryEntry.builder()
-                .user(currentUserApi.currentEmail())
+                .user(currentUser)
                 .timestamp(TimeHelper.now())
-                .affectedUser(user.getEmail())
+                .affectedUser(user)
                 .type(ProjectHistoryType.USER_ROLE_CHANGED)
                 .oldValue(existingRole.get().type().name())
                 .newValue(type.name());
         historyEntries.add(historyEntryBuilder.build());
     }
 
-    public void removeUserRole(User user) {
+    public void removeUserRole(User user, User currentUser) {
         final var existingRole = projectRoles.stream()
                 .filter(projectRole -> projectRole.user().equals(user))
                 .findFirst();
@@ -126,9 +121,9 @@ public class Project {
         }
         projectRoles.remove(existingRole.get());
         final var historyEntryBuilder = ProjectHistoryEntry.builder()
-                .user(currentUserApi.currentEmail())
+                .user(currentUser)
                 .timestamp(TimeHelper.now())
-                .affectedUser(user.getEmail())
+                .affectedUser(user)
                 .type(ProjectHistoryType.USER_REMOVED)
                 .oldValue(existingRole.get().type().name());
         historyEntries.add(historyEntryBuilder.build());
@@ -138,9 +133,9 @@ public class Project {
         return Collections.unmodifiableSet(projectRoles);
     }
 
-    public Optional<ProjectRoleType> getRole(String userEmail) {
+    public Optional<ProjectRoleType> getRole(User user) {
         return projectRoles.stream()
-                .filter(projectRole -> projectRole.user().getEmail().equals(userEmail))
+                .filter(projectRole -> projectRole.user().getEmail().equals(user.getEmail()))
                 .map(ProjectRole::type)
                 .findFirst();
     }

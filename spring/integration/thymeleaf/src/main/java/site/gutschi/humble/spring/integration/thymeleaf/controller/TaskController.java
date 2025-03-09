@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.tasks.api.CreateTaskUseCase;
+import site.gutschi.humble.spring.tasks.api.EditTaskUseCase;
+import site.gutschi.humble.spring.tasks.api.ViewTasksUseCase;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
-import site.gutschi.humble.spring.tasks.usecases.CreateTaskUseCase;
-import site.gutschi.humble.spring.tasks.usecases.EditTaskUseCase;
-import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,8 +43,9 @@ public class TaskController {
     public String deleteTaskView(@PathVariable("key") String keyStr, Model model) {
         final var key = TaskKey.fromString(keyStr);
         final var response = viewTasksUseCase.getTaskByKey(key);
+        final var currentUser = currentUserApi.getCurrentUser();
         if (!response.deletable()) {
-            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "delete task", currentUserApi.currentEmail());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "delete task", currentUser.getEmail());
         }
         model.addAttribute("task", response.task());
         model.addAttribute("currentProject", response.project());
@@ -71,8 +72,9 @@ public class TaskController {
     public String editTaskView(@PathVariable("key") String keyStr, Model model) {
         final var key = TaskKey.fromString(keyStr);
         final var response = viewTasksUseCase.getTaskByKey(key);
+        final var currentUser = currentUserApi.getCurrentUser();
         if (!response.editable()) {
-            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit task", currentUserApi.currentEmail());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit task", currentUser.getEmail());
         }
         model.addAttribute("task", response.task());
         model.addAttribute("states", TaskStatus.values());
@@ -132,6 +134,4 @@ public class TaskController {
         final var createdTask = createTaskUseCase.create(request);
         return "redirect:/tasks/" + createdTask.getKey();
     }
-
-    //TODO UI: Direct actions to move task forwards / backwards
 }

@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -33,7 +33,7 @@ public interface ViewTasksUseCase {
      */
     record GetTaskResponse(Task task, boolean editable, boolean deletable, Project project) {
     }
-    
+
     /**
      * @param tasks    The matching tasks on this result page
      * @param projects All projects for those tasks

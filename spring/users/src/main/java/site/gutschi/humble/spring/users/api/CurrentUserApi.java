@@ -1,5 +1,7 @@
-package site.gutschi.humble.spring.common.api;
+package site.gutschi.humble.spring.users.api;
 
+
+import site.gutschi.humble.spring.users.model.User;
 
 /**
  * API to get the current user.
@@ -10,7 +12,7 @@ public interface CurrentUserApi {
      *
      * @return the email of the current user
      */
-    String currentEmail();
+    User getCurrentUser();
 
     /**
      * Is the current user a system admin?

@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;

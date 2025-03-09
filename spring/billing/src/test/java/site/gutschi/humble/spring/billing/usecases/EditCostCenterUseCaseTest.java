@@ -9,13 +9,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,15 +36,17 @@ class EditCostCenterUseCaseTest {
     private CurrentUserApi currentUserApi;
 
     @MockitoBean
-    private GetProjectUseCase getProjectUseCase;
+    private GetProjectApi getProjectApi;
 
     private CostCenter costCenter;
 
     @BeforeEach
     void setUp() {
+        final var currentUser = User.builder().email("dev@example.com").name("Hans").build();
         costCenter = new CostCenter(3, "name", List.of("address"), "old@example.com", false, Set.of());
         Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.of(costCenter));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
     }
 
     @Nested
@@ -176,11 +178,11 @@ class EditCostCenterUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            final var owner = new User("dev@example.com", "Hans");
-            project = Project.createNew("key", "name", owner, currentUserApi);
+            final var owner = User.builder().email("dev@example.com").email("Hans").build();
+            project = Project.createNew("key", "name", owner);
             costCenter.addProject(project);
             request = new EditCostCenterUseCase.AssignCostCenterToUserRequest(costCenter.getId(), project.getKey());
-            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(project);
+            Mockito.when(getProjectApi.getProject(project.getKey())).thenReturn(project);
         }
 
         @Test
@@ -217,10 +219,10 @@ class EditCostCenterUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            final var owner = new User("dev@example.com", "Hans");
-            project = Project.createNew("key", "name", owner, currentUserApi);
+            final var owner = User.builder().email("dev@example.com").email("Hans").build();
+            project = Project.createNew("key", "name", owner);
             costCenter.addProject(project);
-            Mockito.when(getProjectUseCase.getProject(project.getKey())).thenReturn(project);
+            Mockito.when(getProjectApi.getProject(project.getKey())).thenReturn(project);
             Mockito.when(costCenterRepository.findByProject(project)).thenReturn(Optional.of(costCenter));
         }
 

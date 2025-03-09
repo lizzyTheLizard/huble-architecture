@@ -1,10 +1,7 @@
 package site.gutschi.humble.spring.users.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * A user in the systems. User are generated and updated after each login
@@ -12,9 +9,17 @@ import lombok.Setter;
  */
 @Getter
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User {
     private final String email;
     @Setter
     private String name;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof User user) {
+            return email.equals(user.email);
+        }
+        return false;
+    }
 }

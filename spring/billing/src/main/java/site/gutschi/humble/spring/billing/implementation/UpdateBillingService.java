@@ -11,9 +11,9 @@ import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
 import site.gutschi.humble.spring.billing.usecases.UpdateBillsUseCase;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
+import site.gutschi.humble.spring.tasks.api.GetTasksApi;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskHistoryType;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectHistoryType;
 
@@ -29,7 +29,7 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     private final BillRepository billRepository;
     private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
-    private final GetTasksUseCase getTasksUseCase;
+    private final GetTasksApi getTasksApi;
     private final BillingConfiguration billingConfiguration;
     private final BillingPeriodRepository billingPeriodRepository;
     private final NewBillingPeriodValidPolicy newBillingPeriodValidPolicy;
@@ -50,6 +50,7 @@ public class UpdateBillingService implements UpdateBillsUseCase {
             final var bill = new Bill(null, costCenter, persistedBillingPeriod, projectBills);
             billRepository.save(bill);
         }
+        log.info("Bills for period {} created", billingPeriodStart);
     }
 
     private boolean wasActive(Project project, BillingPeriod billingPeriod) {
@@ -71,14 +72,14 @@ public class UpdateBillingService implements UpdateBillsUseCase {
     }
 
     private long countTotalTasks(Project project, BillingPeriod billingPeriod) {
-        return getTasksUseCase.getTasksForProject(project.getKey()).stream()
+        return getTasksApi.getTasksForProject(project).stream()
                 .filter(t -> billingPeriod.isInOrBefore(getCreatedDate(t)))
                 .filter(t -> !billingPeriod.isBefore(getDeletedDate(t)))
                 .count();
     }
 
     private long countCreatedTasks(Project project, BillingPeriod billingPeriod) {
-        return getTasksUseCase.getTasksForProject(project.getKey()).stream()
+        return getTasksApi.getTasksForProject(project).stream()
                 .filter(t -> billingPeriod.isIn(getCreatedDate(t)))
                 .count();
     }

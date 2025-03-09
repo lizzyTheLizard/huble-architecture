@@ -12,11 +12,13 @@ import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,12 +51,16 @@ class ShowBillsUseCaseTest {
         costCenter = new CostCenter(3, "name", List.of("address"), "old@example.com", false, Set.of());
         billingPeriod = new BillingPeriod(1, LocalDate.MIN, LocalDate.MIN, LocalDate.MIN);
         bill = new Bill(1, costCenter, billingPeriod, Set.of());
+        User currentUser = User.builder().email("dev@example.com").name("Hans").build();
 
         Mockito.when(costCenterRepository.findAll()).thenReturn(Set.of(costCenter));
+        Mockito.when(costCenterRepository.findById(costCenter.getId())).thenReturn(Optional.of(costCenter));
         Mockito.when(billingPeriodRepository.findAll()).thenReturn(Set.of(billingPeriod));
-        Mockito.when(billRepository.findAllForCostCenter(costCenter.getId())).thenReturn(Set.of(bill));
-        Mockito.when(billRepository.findAllForPeriod(billingPeriod.id())).thenReturn(Set.of(bill));
+        Mockito.when(billingPeriodRepository.findById(billingPeriod.id())).thenReturn(Optional.of(billingPeriod));
+        Mockito.when(billRepository.findAllForCostCenter(costCenter)).thenReturn(Set.of(bill));
+        Mockito.when(billRepository.findAllForPeriod(billingPeriod)).thenReturn(Set.of(bill));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
     }
 
     @Test

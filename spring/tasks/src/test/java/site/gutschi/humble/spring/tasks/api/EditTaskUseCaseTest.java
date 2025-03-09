@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,16 +7,16 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 import site.gutschi.humble.spring.tasks.model.*;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest
-class EditTaskTest {
+class EditTaskUseCaseTest {
     @Autowired
     private EditTaskUseCase target;
 
@@ -36,7 +36,7 @@ class EditTaskTest {
     private TaskRepository taskRepository;
 
     @MockitoBean
-    private GetProjectUseCase getProjectUseCase;
+    private GetProjectApi getProjectApi;
 
     private User currentUser;
     private Project testProject;
@@ -45,13 +45,13 @@ class EditTaskTest {
     @BeforeEach
     void setup() {
         TimeHelper.setNow(Instant.ofEpochMilli(1000));
-        currentUser = new User("dev@example.com", "Hans");
-        testProject = Project.createNew("PRO", "Test", currentUser, currentUserApi);
-        existingTask = Task.createNew(currentUserApi, testProject.getKey(), 13, "Test", "Test");
-        Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(testProject);
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        testProject = Project.createNew("PRO", "Test", currentUser);
+        existingTask = Task.createNew(testProject, 13, "Test", "Test", currentUser);
+        Mockito.when(getProjectApi.getProject(testProject.getKey())).thenReturn(testProject);
         Mockito.when(taskRepository.findByKey(existingTask.getKey().toString())).thenReturn(Optional.of(existingTask));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
     }
 
     @Nested
@@ -65,7 +65,7 @@ class EditTaskTest {
 
         @Test
         void notActive() {
-            testProject.setActive(false);
+            testProject.setActive(false, currentUser);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.comment(request));
 
@@ -74,7 +74,7 @@ class EditTaskTest {
 
         @Test
         void deleted() {
-            existingTask.setDeleted();
+            existingTask.setDeleted(currentUser);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.comment(request));
 
@@ -94,17 +94,17 @@ class EditTaskTest {
         void comment() {
             target.comment(request);
 
-            assertThat(existingTask.getComments()).singleElement().isEqualTo(new Comment(currentUser.getEmail(), Instant.ofEpochMilli(1000), request.comment()));
+            assertThat(existingTask.getComments()).singleElement().isEqualTo(new Comment(currentUser, Instant.ofEpochMilli(1000), request.comment()));
             Mockito.verify(taskRepository).save(existingTask);
         }
 
         @Test
         void readAccessOnly() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
 
             target.comment(request);
 
-            assertThat(existingTask.getComments()).singleElement().isEqualTo(new Comment(currentUser.getEmail(), Instant.ofEpochMilli(1000), request.comment()));
+            assertThat(existingTask.getComments()).singleElement().isEqualTo(new Comment(currentUser, Instant.ofEpochMilli(1000), request.comment()));
             Mockito.verify(taskRepository).save(existingTask);
         }
     }
@@ -115,13 +115,15 @@ class EditTaskTest {
 
         @BeforeEach
         void setup() {
+            final var assignee = User.builder().email("assigneeEmail").name("Assignee").build();
             request = new EditTaskUseCase.EditTaskRequest(existingTask.getKey(), "new title", "new description",
-                    TaskStatus.TODO, "assigneeEmail", 1);
+                    TaskStatus.TODO, assignee.getEmail(), 1);
+            testProject.setUserRole(assignee, ProjectRoleType.DEVELOPER, currentUser);
         }
 
         @Test
         void notActive() {
-            testProject.setActive(false);
+            testProject.setActive(false, currentUser);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.edit(request));
 
@@ -130,7 +132,7 @@ class EditTaskTest {
 
         @Test
         void readOnly() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.edit(request));
 
@@ -139,7 +141,7 @@ class EditTaskTest {
 
         @Test
         void deleted() {
-            existingTask.setDeleted();
+            existingTask.setDeleted(currentUser);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.edit(request));
 
@@ -162,32 +164,33 @@ class EditTaskTest {
             assertThat(existingTask.getTitle()).isEqualTo(request.title());
             assertThat(existingTask.getDescription()).isEqualTo(request.description());
             assertThat(existingTask.getStatus()).isEqualTo(request.status());
-            assertThat(existingTask.getAssigneeEmail()).contains(request.assignee());
+            assertThat(existingTask.getAssignee().map(User::getEmail)).contains(request.assignee());
             assertThat(existingTask.getEstimation()).contains(request.estimation());
             assertThat(existingTask.getHistoryEntries()).contains(
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Title", "Test", "new title"),
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Description", "Test", "new description"),
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Status", TaskStatus.FUNNEL.name(), TaskStatus.TODO.name()),
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Assignee", null, "assigneeEmail"),
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Estimation", null, "1")
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Title", "Test", "new title"),
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Description", "Test", "new description"),
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Status", TaskStatus.FUNNEL.name(), TaskStatus.TODO.name()),
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Assignee", null, "assigneeEmail"),
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Estimation", null, "1")
             );
             Mockito.verify(taskRepository).save(existingTask);
         }
 
         @Test
         void unsetFields() {
-            existingTask.setAssigneeEmail("old@example.com");
-            existingTask.setEstimation(2);
+            final var assignee = User.builder().email("old@example.com").name("Old").build();
+            existingTask.setAssignee(assignee, currentUser);
+            existingTask.setEstimation(2, currentUser);
             final var request = new EditTaskUseCase.EditTaskRequest(existingTask.getKey(), "new title", "new description",
                     TaskStatus.TODO, null, null);
 
             target.edit(request);
 
-            assertThat(existingTask.getAssigneeEmail()).isEmpty();
+            assertThat(existingTask.getAssignee()).isEmpty();
             assertThat(existingTask.getEstimation()).isEmpty();
             assertThat(existingTask.getHistoryEntries()).contains(
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Assignee", "old@example.com", null),
-                    new TaskHistoryEntry(currentUser.getEmail(), Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Estimation", "2", null)
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Assignee", "old@example.com", null),
+                    new TaskHistoryEntry(currentUser, Instant.ofEpochMilli(1000), TaskHistoryType.EDITED, "Estimation", "2", null)
             );
             Mockito.verify(taskRepository).save(existingTask);
         }
@@ -197,7 +200,7 @@ class EditTaskTest {
     class Delete {
         @Test
         void notActive() {
-            testProject.setActive(false);
+            testProject.setActive(false, currentUser);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.delete(existingTask.getKey()));
 
@@ -206,7 +209,7 @@ class EditTaskTest {
 
         @Test
         void readAccessOnly() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.delete(existingTask.getKey()));
 
@@ -215,7 +218,7 @@ class EditTaskTest {
 
         @Test
         void deleted() {
-            existingTask.setDeleted();
+            existingTask.setDeleted(currentUser);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.delete(existingTask.getKey()));
 

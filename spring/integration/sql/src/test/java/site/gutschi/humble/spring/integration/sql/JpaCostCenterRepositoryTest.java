@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.test.PostgresContainer;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
@@ -33,8 +31,6 @@ class JpaCostCenterRepositoryTest {
     private ProjectRepository projectRepository;
     @Autowired
     private UserRepository userRepository;
-    @MockitoBean
-    private CurrentUserApi currentUserApi;
     private Project project;
 
     @DynamicPropertySource
@@ -44,9 +40,9 @@ class JpaCostCenterRepositoryTest {
 
     @BeforeEach
     void setup() {
-        final var user = new User("dev@example.com", "Hans");
+        final var user = User.builder().email("dev@example.com").name("Hans").build();
         userRepository.save(user);
-        project = Project.createNew("PRO", "Test", user, currentUserApi);
+        project = Project.createNew("PRO", "Test", user);
         projectRepository.save(project);
     }
 

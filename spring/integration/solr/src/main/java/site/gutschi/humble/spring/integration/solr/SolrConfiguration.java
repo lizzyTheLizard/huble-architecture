@@ -4,8 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-// TODO Configuration: Streamline all configuration into classes using annotation processing.
-
 /**
  * Configuration for Solr.
  */

@@ -27,16 +27,16 @@ public class InMemoryTaskRepository implements TaskRepository {
     }
 
     @Override
-    public int nextId(String projectKey) {
-        final var next = nextId.getOrDefault(projectKey, 1);
-        nextId.put(projectKey, next + 1);
+    public int nextId(Project project) {
+        final var next = nextId.getOrDefault(project.getKey(), 1);
+        nextId.put(project.getKey(), next + 1);
         return next;
     }
 
     @Override
     public Set<Task> findByProject(Project project) {
         return tasks.stream()
-                .filter(task -> task.getProjectKey().equals(project.getKey()))
+                .filter(task -> task.getProject().equals(project))
                 .collect(Collectors.toSet());
     }
 }

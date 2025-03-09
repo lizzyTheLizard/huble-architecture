@@ -24,9 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Testcontainers
 public class ProjectRepositoryTests {
-    final static User u1 = new User("u1@example.com", "U1");
-    final static User u2 = new User("u2@example.com", "U2");
-    final static User u3 = new User("u3@example.com", "U3");
+    final static User u1 = User.builder().email("u1@example.com").name("U1").build();
+    final static User u2 = User.builder().email("u2@example.com").name("U2").build();
+    final static User u3 = User.builder().email("u3@example.com").name("U3").build();
 
     @Container
     static final PostgresContainer container = new PostgresContainer();
@@ -44,9 +44,9 @@ public class ProjectRepositoryTests {
         final var role1 = new ProjectRole(u1, ProjectRoleType.STAKEHOLDER);
         final var role2 = new ProjectRole(u2, ProjectRoleType.DEVELOPER);
         TimeHelper.setNow(Instant.ofEpochMilli(10000));
-        final var hEntry1 = new ProjectHistoryEntry(u1.getEmail(), TimeHelper.now(), ProjectHistoryType.CREATED, null, null, null);
+        final var hEntry1 = new ProjectHistoryEntry(u1, TimeHelper.now(), ProjectHistoryType.CREATED, null, null, null);
         TimeHelper.setNow(Instant.ofEpochMilli(10100));
-        final var hEntry2 = new ProjectHistoryEntry(u2.getEmail(), TimeHelper.now(), ProjectHistoryType.USER_ROLE_CHANGED, u1.getEmail(), "STAKEHOLDER", "ADMIN");
+        final var hEntry2 = new ProjectHistoryEntry(u2, TimeHelper.now(), ProjectHistoryType.USER_ROLE_CHANGED, u1, "STAKEHOLDER", "ADMIN");
         TimeHelper.setNow(null);
 
         final var projectBuilder = Project.builder()
@@ -87,15 +87,17 @@ public class ProjectRepositoryTests {
 
         assertThat(result.get().getProjectRoles()).hasSize(project.getProjectRoles().size());
         for (ProjectRole role : project.getProjectRoles()) {
-            assertThat(result.get().getRole(role.user().getEmail())).contains(role.type());
+            assertThat(result.get().getRole(role.user())).contains(role.type());
         }
-        assertThat(result.get().getHistoryEntries()).zipSatisfy(project.getHistoryEntries(), (a, b) -> {
-            assertThat(a.user()).isEqualTo(b.user());
-            assertThat(a.timestamp()).isEqualTo(b.timestamp());
-            assertThat(a.type()).isEqualTo(b.type());
-            assertThat(a.affectedUser()).isEqualTo(b.affectedUser());
-            assertThat(a.oldValue()).isEqualTo(b.oldValue());
-            assertThat(a.newValue()).isEqualTo(b.newValue());
+        assertThat(result.get().getHistoryEntries()).hasSize(project.getHistoryEntries().size());
+        result.get().getHistoryEntries().forEach(resultEntry -> {
+            final var taskEntry = project.getHistoryEntries().stream().filter(e -> e.description().equals(resultEntry.description())).findFirst();
+            assertThat(taskEntry).isPresent();
+            assertThat(resultEntry.user()).isEqualTo(taskEntry.get().user());
+            assertThat(resultEntry.timestamp()).isEqualTo(taskEntry.get().timestamp());
+            assertThat(resultEntry.type()).isEqualTo(taskEntry.get().type());
+            assertThat(resultEntry.oldValue()).isEqualTo(taskEntry.get().oldValue());
+            assertThat(resultEntry.newValue()).isEqualTo(taskEntry.get().newValue());
         });
         assertThat(result.get().isActive()).isEqualTo(project.isActive());
     }

@@ -4,10 +4,10 @@ import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 
 @SpringBootApplication
 public class TasksTestApplication {
@@ -31,7 +31,7 @@ public class TasksTestApplication {
     }
 
     @Bean
-    GetProjectUseCase getProjectUseCase() {
-        return Mockito.mock(GetProjectUseCase.class);
+    GetProjectApi getProjectUseCase() {
+        return Mockito.mock(GetProjectApi.class);
     }
 }

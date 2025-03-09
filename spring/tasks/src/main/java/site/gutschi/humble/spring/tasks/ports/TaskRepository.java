@@ -3,8 +3,8 @@ package site.gutschi.humble.spring.tasks.ports;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.model.Project;
 
+import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 public interface TaskRepository {
     /**
@@ -25,11 +25,10 @@ public interface TaskRepository {
     /**
      * The nextID for a new task in a given project. This always return the nextID and increments the internal counter.
      *
-     * @param projectKey The key of the project
+     * @param project The project
      * @return The next ID
      */
-    //TODO Modelling: Use Project instead of String
-    int nextId(String projectKey);
+    int nextId(Project project);
 
     /**
      * Find all tasks in a project
@@ -37,5 +36,5 @@ public interface TaskRepository {
      * @param project The project
      * @return The tasks in the project
      */
-    Set<Task> findByProject(Project project);
+    Collection<Task> findByProject(Project project);
 }

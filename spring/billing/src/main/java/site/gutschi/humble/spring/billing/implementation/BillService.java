@@ -9,8 +9,10 @@ import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
 import site.gutschi.humble.spring.billing.usecases.ShowBillsUseCase;
+import site.gutschi.humble.spring.common.exception.NotFoundException;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
 
-import java.util.Set;
+import java.util.Collection;
 
 @RequiredArgsConstructor
 @Service
@@ -19,28 +21,33 @@ public class BillService implements ShowBillsUseCase {
     private final CanAccessBillingPolicy canAccessBillingPolicy;
     private final CostCenterRepository costCenterRepository;
     private final BillingPeriodRepository billingPeriodRepository;
+    private final CurrentUserApi currentUserApi;
 
 
     @Override
-    public Set<BillingPeriod> getAllBillingPeriods() {
+    public Collection<BillingPeriod> getAllBillingPeriods() {
         canAccessBillingPolicy.ensureCanAccessBilling();
         return billingPeriodRepository.findAll();
     }
 
     @Override
-    public Set<Bill> getAllForPeriod(int billingPeriodId) {
+    public Collection<Bill> getAllForPeriod(int billingPeriodId) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        return billRepository.findAllForPeriod(billingPeriodId);
+        final var billingPeriod = billingPeriodRepository.findById(billingPeriodId)
+                .orElseThrow(() -> NotFoundException.notFound("BillingPeriod", String.valueOf(billingPeriodId), currentUserApi.getCurrentUser().getEmail()));
+        return billRepository.findAllForPeriod(billingPeriod);
     }
 
     @Override
-    public Set<Bill> getAllForCostCenter(int costCenterId) {
+    public Collection<Bill> getAllForCostCenter(int costCenterId) {
         canAccessBillingPolicy.ensureCanAccessBilling();
-        return billRepository.findAllForCostCenter(costCenterId);
+        final var costCenter = costCenterRepository.findById(costCenterId)
+                .orElseThrow(() -> NotFoundException.notFound("CostCenter", String.valueOf(costCenterId), currentUserApi.getCurrentUser().getEmail()));
+        return billRepository.findAllForCostCenter(costCenter);
     }
 
     @Override
-    public Set<CostCenter> getAllCostCenters() {
+    public Collection<CostCenter> getAllCostCenters() {
         canAccessBillingPolicy.ensureCanAccessBilling();
         return costCenterRepository.findAll();
     }

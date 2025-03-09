@@ -45,13 +45,13 @@ public class SolrCaller implements SearchCaller {
 
     private SolrQuery createQuery(SearchCallerRequest request) {
         final var fq = request.allowedProjects().stream()
-                .map(project -> "project_s:" + project.getKey())
+                .map(project -> "project:" + project.getKey())
                 .reduce((a, b) -> a + " OR " + b)
                 .orElse("*:*");
         final var searchString = ClientUtils.escapeQueryChars(request.query());
         final var query = new SolrQuery(searchString);
         query.set(CommonParams.FL, "*");
-        query.set(DisMaxParams.QF, "key_s^20 title_t^5 _text_");
+        query.set(DisMaxParams.QF, "key^20 title^5 _text_");
         query.set("defType", "edismax");
         query.addFilterQuery(fq);
         query.setRows(request.pageSize());
@@ -90,7 +90,7 @@ public class SolrCaller implements SearchCaller {
         if (tasks.length == 0) return;
         try (var client = createClient()) {
             for (var task : tasks) {
-                client.deleteByQuery("key_s:" + task.getKey());
+                client.deleteByQuery("key:" + task.getKey());
             }
             client.commit();
             log.info("Deleted {} tasks", tasks.length);

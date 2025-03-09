@@ -36,4 +36,11 @@ public class InMemoryBillingPeriodRepository implements BillingPeriodRepository 
     public Set<BillingPeriod> findAll() {
         return billingPeriods;
     }
+
+    @Override
+    public Optional<BillingPeriod> findById(int billingPeriodId) {
+        return billingPeriods.stream()
+                .filter(billingPeriod -> billingPeriod.id().equals(billingPeriodId))
+                .findFirst();
+    }
 }

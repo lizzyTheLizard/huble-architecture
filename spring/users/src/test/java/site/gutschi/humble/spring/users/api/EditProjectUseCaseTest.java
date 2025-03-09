@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,12 +7,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
@@ -29,7 +29,7 @@ class EditProjectUseCaseTest {
     private EditProjectUseCase target;
 
     @MockitoBean
-    private CurrentUserApi currentUserApi;
+    private CurrentUserInformation currentUserInformation;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -45,20 +45,20 @@ class EditProjectUseCaseTest {
     void setup() {
         currentUser = User.builder().email("dev@example.com").name("Hans").build();
         testUser = User.builder().email("test@example.com").name("Dev").build();
-        testProject = Project.createNew("PRO", "Test Project", currentUser, currentUserApi);
-        testProject.setUserRole(currentUser, ProjectRoleType.ADMIN);
+        final var owner = User.builder().email("owner@example.com").name("Owner").build();
+        testProject = Project.createNew("PRO", "Test Project", owner);
+        testProject.setUserRole(currentUser, ProjectRoleType.ADMIN, currentUser);
         Mockito.when(userRepository.findByMail(testUser.getEmail())).thenReturn(Optional.of(testUser));
         Mockito.when(projectRepository.findByKey(testProject.getKey())).thenReturn(Optional.of(testProject));
-        //Mockito.when(projectRepository.findAll()).thenReturn(Set.of(testProject));
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(currentUser);
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
     }
 
     @Nested
     class EditProject {
         @Test
         void projectNotAllowed() {
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
             final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.editProject(request));
@@ -68,7 +68,7 @@ class EditProjectUseCaseTest {
 
         @Test
         void projectNotVisible() {
-            testProject.removeUserRole(currentUser);
+            testProject.removeUserRole(currentUser, currentUser);
             final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.editProject(request));
@@ -88,10 +88,8 @@ class EditProjectUseCaseTest {
 
         @Test
         void asSystemUser() {
-            // needs at least one admin…
-            testProject.setUserRole(testUser, ProjectRoleType.ADMIN);
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
             final var request = new EditProjectUseCase.EditProjectRequest(testProject.getKey(), "New Name", Set.of(3, 5, 7), true);
 
             target.editProject(request);
@@ -120,7 +118,7 @@ class EditProjectUseCaseTest {
     class AssignUser {
         @Test
         void projectNotAllowed() {
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
             final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.assignUser(request));
@@ -130,7 +128,7 @@ class EditProjectUseCaseTest {
 
         @Test
         void projectNotVisible() {
-            testProject.removeUserRole(currentUser);
+            testProject.removeUserRole(currentUser, currentUser);
             final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.assignUser(request));
@@ -158,13 +156,13 @@ class EditProjectUseCaseTest {
 
         @Test
         void asSystemUser() {
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
             final var request = new EditProjectUseCase.AssignUserRequest(testUser.getEmail(), testProject.getKey(), ProjectRoleType.STAKEHOLDER);
 
             target.assignUser(request);
 
-            assertThat(testProject.getRole(testUser.getEmail())).contains(ProjectRoleType.STAKEHOLDER);
+            assertThat(testProject.getRole(testUser)).contains(ProjectRoleType.STAKEHOLDER);
             Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
         }
 
@@ -174,7 +172,7 @@ class EditProjectUseCaseTest {
 
             target.assignUser(request);
 
-            assertThat(testProject.getRole(testUser.getEmail())).contains(ProjectRoleType.STAKEHOLDER);
+            assertThat(testProject.getRole(testUser)).contains(ProjectRoleType.STAKEHOLDER);
             Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
         }
     }
@@ -183,12 +181,12 @@ class EditProjectUseCaseTest {
     class UnAssignUser {
         @BeforeEach
         void setup() {
-            testProject.setUserRole(testUser, ProjectRoleType.DEVELOPER);
+            testProject.setUserRole(testUser, ProjectRoleType.DEVELOPER, currentUser);
         }
 
         @Test
         void projectNotAllowed() {
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
             final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.unAssignUser(request));
@@ -198,7 +196,7 @@ class EditProjectUseCaseTest {
 
         @Test
         void projectNotVisible() {
-            testProject.removeUserRole(currentUser);
+            testProject.removeUserRole(currentUser, currentUser);
             final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.unAssignUser(request));
@@ -228,13 +226,13 @@ class EditProjectUseCaseTest {
 
         @Test
         void asSystemUser() {
-            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER);
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            testProject.setUserRole(currentUser, ProjectRoleType.DEVELOPER, currentUser);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
             final var request = new EditProjectUseCase.UnAssignUserRequest(testUser.getEmail(), testProject.getKey());
 
             target.unAssignUser(request);
 
-            assertThat(testProject.getRole(testUser.getEmail())).isEmpty();
+            assertThat(testProject.getRole(testUser)).isEmpty();
             Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
         }
 
@@ -244,7 +242,7 @@ class EditProjectUseCaseTest {
 
             target.unAssignUser(request);
 
-            assertThat(testProject.getRole(testUser.getEmail())).isEmpty();
+            assertThat(testProject.getRole(testUser)).isEmpty();
             Mockito.verify(projectRepository, Mockito.atLeastOnce()).save(testProject);
         }
     }

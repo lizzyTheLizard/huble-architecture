@@ -15,14 +15,14 @@ import site.gutschi.humble.spring.billing.model.ProjectBill;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
+import site.gutschi.humble.spring.tasks.api.GetTasksApi;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskHistoryEntry;
 import site.gutschi.humble.spring.tasks.model.TaskHistoryType;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectHistoryEntry;
 import site.gutschi.humble.spring.users.model.ProjectHistoryType;
@@ -47,7 +47,7 @@ class UpdateBillsUseCaseTest {
     private CurrentUserApi currentUserApi;
 
     @MockitoBean
-    private GetTasksUseCase getTasksUseCase;
+    private GetTasksApi getTasksApi;
 
     @MockitoBean
     private BillingPeriodRepository billingPeriodRepository;
@@ -63,24 +63,25 @@ class UpdateBillsUseCaseTest {
     @BeforeEach
     void setUp() {
         billingPeriodStart = TimeHelper.today().withDayOfMonth(1).minusMonths(1);
-        currentUser = new User("dev@example.com", "Hans");
+        currentUser = User.builder().email("dev@example.com").email("Hans").build();
         costCenter = new CostCenter(3, "name", List.of("address"), "old@example.com", false, Set.of());
         updateTestProject(LocalDate.MIN, List.of(), Set.of());
         Mockito.when(costCenterRepository.findAll()).thenReturn(Set.of(costCenter));
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
         Mockito.when(billingPeriodRepository.save(Mockito.any())).thenAnswer(invocation -> invocation.getArgument(0, BillingPeriod.class));
     }
 
     private Task createTask(LocalDate created, LocalDate deleted) {
         final var builder = Task.builder()
                 .id(1)
-                .projectKey(testProject.getKey())
-                .currentUserApi(currentUserApi)
-                .creatorEmail(currentUser.getEmail());
+                .project(testProject)
+                .creator(currentUser)
+                .title("Task");
         if (created != null)
-            builder.historyEntry(new TaskHistoryEntry(currentUser.getEmail(), TimeHelper.instantOf(created), TaskHistoryType.CREATED, null, null, null));
+            builder.historyEntry(new TaskHistoryEntry(currentUser, TimeHelper.instantOf(created), TaskHistoryType.CREATED, null, null, null));
         if (deleted != null)
-            builder.historyEntry(new TaskHistoryEntry(currentUser.getEmail(), TimeHelper.instantOf(deleted), TaskHistoryType.DELETED, null, null, null));
+            builder.historyEntry(new TaskHistoryEntry(currentUser, TimeHelper.instantOf(deleted), TaskHistoryType.DELETED, null, null, null));
         return builder.build();
     }
 
@@ -89,22 +90,21 @@ class UpdateBillsUseCaseTest {
         final var builder = Project.builder()
                 .key("TEST")
                 .name("Test")
-                .active(activationChanged.size() % 2 == 0)
-                .currentUserApi(currentUserApi);
+                .active(activationChanged.size() % 2 == 0);
         if (created != null)
             builder.historyEntry(new ProjectHistoryEntry(
-                    currentUser.getEmail(),
+                    currentUser,
                     TimeHelper.instantOf(created),
                     ProjectHistoryType.CREATED, null, null, null));
         activationChanged.forEach(d ->
                 builder.historyEntry(new ProjectHistoryEntry(
-                        currentUser.getEmail(),
+                        currentUser,
                         TimeHelper.instantOf(d),
                         ProjectHistoryType.ACTIVATE_CHANGED, null, null, null)));
         costCenter.removeProject(testProject);
         testProject = builder.build();
         costCenter.addProject(testProject);
-        Mockito.when(getTasksUseCase.getTasksForProject(testProject.getKey())).thenReturn(tasks);
+        Mockito.when(getTasksApi.getTasksForProject(testProject)).thenReturn(tasks);
     }
 
     @Nested

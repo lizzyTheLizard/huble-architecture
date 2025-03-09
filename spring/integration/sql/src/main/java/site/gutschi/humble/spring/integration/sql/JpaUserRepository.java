@@ -16,13 +16,28 @@ public class JpaUserRepository implements UserRepository {
 
     @Override
     public void save(User user) {
-        final var entity = UserEntity.fromModel(user);
+        final var entity = fromModel(user);
         userEntityRepository.save(entity);
     }
 
     @Override
     public Optional<User> findByMail(String email) {
         return userEntityRepository.findById(email)
-                .map(UserEntity::toModel);
+                .map(this::toModel);
     }
+
+    public UserEntity fromModel(User user) {
+        final var entity = new UserEntity();
+        entity.setEmail(user.getEmail());
+        entity.setName(user.getName());
+        return entity;
+    }
+
+    public User toModel(UserEntity entity) {
+        return User.builder()
+                .email(entity.getEmail())
+                .name(entity.getName())
+                .build();
+    }
+
 }

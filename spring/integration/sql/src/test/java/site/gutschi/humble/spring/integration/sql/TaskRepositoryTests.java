@@ -54,22 +54,22 @@ public class TaskRepositoryTests {
     private static Stream<Task> provideTasks() {
         TimeHelper.setNow(Instant.ofEpochMilli(1000));
         final var taskBuilder = Task.builder()
-                .projectKey(p1.getKey())
-                .creatorEmail(u1.getEmail())
+                .project(p1)
+                .creator(u1)
                 .title("Task 1")
                 .description("Description 1")
                 .status(TaskStatus.BACKLOG)
                 .deleted(false)
-                .comment(new Comment(u1.getEmail(), TimeHelper.now(), "Comment 1"))
-                .historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.CREATED, null, null, null));
+                .comment(new Comment(u1, TimeHelper.now(), "Comment 1"))
+                .historyEntry(new TaskHistoryEntry(u1, TimeHelper.now(), TaskHistoryType.CREATED, null, null, null));
         return Stream.of(
                 taskBuilder.id(1).build(),
                 taskBuilder.id(2).title("Task 2").build(),
                 taskBuilder.id(3).estimation(3).build(),
                 taskBuilder.id(4).deleted(true).build(),
-                taskBuilder.id(5).assigneeEmail(u1.getEmail()).build(),
-                taskBuilder.id(6).comment(new Comment(u1.getEmail(), TimeHelper.now(), "Comment 2")).build(),
-                taskBuilder.id(7).historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.EDITED, "Status", "BACKLOG", "IN_PROGRESS")).build()
+                taskBuilder.id(5).assignee(u1).build(),
+                taskBuilder.id(6).comment(new Comment(u1, TimeHelper.now(), "Comment 2")).build(),
+                taskBuilder.id(7).historyEntry(new TaskHistoryEntry(u1, TimeHelper.now(), TaskHistoryType.EDITED, "Status", "BACKLOG", "IN_PROGRESS")).build()
         );
     }
 
@@ -87,25 +87,31 @@ public class TaskRepositoryTests {
         final var result = taskRepository.findByKey(task.getKey().toString());
         assertThat(result).isPresent();
         assertThat(result.get().getKey()).isEqualTo(task.getKey());
-        assertThat(result.get().getCreatorEmail()).isEqualTo(task.getCreatorEmail());
+        assertThat(result.get().getCreator()).isEqualTo(task.getCreator());
         assertThat(result.get().getStatus()).isEqualTo(task.getStatus());
         assertThat(result.get().getTitle()).isEqualTo(task.getTitle());
         assertThat(result.get().getDescription()).isEqualTo(task.getDescription());
         assertThat(result.get().isDeleted()).isEqualTo(task.isDeleted());
         assertThat(result.get().getEstimation()).isEqualTo(task.getEstimation());
-        assertThat(result.get().getAssigneeEmail()).isEqualTo(task.getAssigneeEmail());
-        assertThat(result.get().getComments()).zipSatisfy(task.getComments(), (a, b) -> {
-            assertThat(a.user()).isEqualTo(b.user());
-            assertThat(a.text()).isEqualTo(b.text());
-            assertThat(a.timestamp()).isEqualTo(b.timestamp());
+        assertThat(result.get().getAssignee()).isEqualTo(task.getAssignee());
+        assertThat(result.get().getComments()).hasSize(task.getComments().size());
+        result.get().getComments().forEach(resultComment -> {
+            final var taskComment = task.getComments().stream().filter(c -> c.text().equals(resultComment.text())).findFirst();
+            assertThat(taskComment).isPresent();
+            assertThat(resultComment.user()).isEqualTo(taskComment.get().user());
+            assertThat(resultComment.text()).isEqualTo(taskComment.get().text());
+            assertThat(resultComment.timestamp()).isEqualTo(taskComment.get().timestamp());
         });
-        assertThat(result.get().getHistoryEntries()).zipSatisfy(task.getHistoryEntries(), (a, b) -> {
-            assertThat(a.user()).isEqualTo(b.user());
-            assertThat(a.timestamp()).isEqualTo(b.timestamp());
-            assertThat(a.type()).isEqualTo(b.type());
-            assertThat(a.field()).isEqualTo(b.field());
-            assertThat(a.oldValue()).isEqualTo(b.oldValue());
-            assertThat(a.newValue()).isEqualTo(b.newValue());
+        assertThat(result.get().getHistoryEntries()).hasSize(task.getHistoryEntries().size());
+        result.get().getHistoryEntries().forEach(resultEntry -> {
+            final var taskEntry = task.getHistoryEntries().stream().filter(e -> e.description().equals(resultEntry.description())).findFirst();
+            assertThat(taskEntry).isPresent();
+            assertThat(resultEntry.user()).isEqualTo(taskEntry.get().user());
+            assertThat(resultEntry.timestamp()).isEqualTo(taskEntry.get().timestamp());
+            assertThat(resultEntry.type()).isEqualTo(taskEntry.get().type());
+            assertThat(resultEntry.field()).isEqualTo(taskEntry.get().field());
+            assertThat(resultEntry.oldValue()).isEqualTo(taskEntry.get().oldValue());
+            assertThat(resultEntry.newValue()).isEqualTo(taskEntry.get().newValue());
         });
     }
 
@@ -117,9 +123,9 @@ public class TaskRepositoryTests {
 
     @Test
     void nextId() {
-        final var old = taskRepository.nextId(p1.getKey());
+        final var old = taskRepository.nextId(p1);
 
-        final var result = taskRepository.nextId(p1.getKey());
+        final var result = taskRepository.nextId(p1);
 
         assertThat(result).isEqualTo(old + 1);
     }
@@ -133,14 +139,14 @@ public class TaskRepositoryTests {
                 .build();
         projectRepository.save(p2);
         final var task = Task.builder()
-                .projectKey(p2.getKey())
-                .creatorEmail(u1.getEmail())
+                .project(p2)
+                .creator(u1)
                 .title("Task 1")
                 .description("Description 1")
                 .status(TaskStatus.BACKLOG)
                 .deleted(false)
-                .comment(new Comment(u1.getEmail(), TimeHelper.now(), "Comment 1"))
-                .historyEntry(new TaskHistoryEntry(u1.getEmail(), TimeHelper.now(), TaskHistoryType.CREATED, null, null, null))
+                .comment(new Comment(u1, TimeHelper.now(), "Comment 1"))
+                .historyEntry(new TaskHistoryEntry(u1, TimeHelper.now(), TaskHistoryType.CREATED, null, null, null))
                 .build();
         taskRepository.save(task);
 

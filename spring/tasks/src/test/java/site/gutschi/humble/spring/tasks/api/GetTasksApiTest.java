@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,21 +6,21 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class GetTasksTest {
+class GetTasksApiTest {
     @Autowired
-    private GetTasksUseCase target;
+    private GetTasksApi target;
 
     @MockitoBean
     private CurrentUserApi currentUserApi;
@@ -29,25 +29,25 @@ class GetTasksTest {
     private TaskRepository taskRepository;
 
     @MockitoBean
-    private GetProjectUseCase getProjectUseCase;
+    private GetProjectApi getProjectApi;
 
     private Project testProject;
     private Task existingTask;
 
     @BeforeEach
     void setup() {
-        User currentUser = new User("dev@example.com", "Hans");
-        testProject = Project.createNew("PRO", "Test", currentUser, currentUserApi);
-        existingTask = Task.createNew(currentUserApi, testProject.getKey(), 13, "Test", "Test");
+        final var currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        testProject = Project.createNew("PRO", "Test", currentUser);
+        existingTask = Task.createNew(testProject, 13, "Test", "Test", currentUser);
         Mockito.when(taskRepository.findByProject(testProject)).thenReturn(Set.of(existingTask));
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-        Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(testProject);
+        Mockito.when(getProjectApi.getProject(testProject.getKey())).thenReturn(testProject);
     }
 
     @Test
     void getTasks() {
-        final var result = target.getTasksForProject(testProject.getKey());
+        final var result = target.getTasksForProject(testProject);
 
         assertThat(result).singleElement().isEqualTo(existingTask);
     }

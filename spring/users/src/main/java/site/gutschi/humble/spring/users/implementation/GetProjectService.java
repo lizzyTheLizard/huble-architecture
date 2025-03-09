@@ -3,9 +3,9 @@ package site.gutschi.humble.spring.users.implementation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class GetProjectService implements GetProjectUseCase {
+public class GetProjectService implements GetProjectApi {
     private final ProjectRepository projectRepository;
     private final CanAccessProjectPolicy canAccessProjectPolicy;
 

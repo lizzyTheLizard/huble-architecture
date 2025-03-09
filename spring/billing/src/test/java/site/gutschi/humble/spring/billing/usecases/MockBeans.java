@@ -7,19 +7,19 @@ import org.springframework.context.annotation.Configuration;
 import site.gutschi.humble.spring.billing.ports.BillRepository;
 import site.gutschi.humble.spring.billing.ports.BillingPeriodRepository;
 import site.gutschi.humble.spring.billing.ports.CostCenterRepository;
-import site.gutschi.humble.spring.tasks.usecases.GetTasksUseCase;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
+import site.gutschi.humble.spring.tasks.api.GetTasksApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 
 @Configuration
 public class MockBeans {
     @Bean
-    GetProjectUseCase getProjectUseCase() {
-        return Mockito.mock(GetProjectUseCase.class);
+    GetProjectApi getProjectUseCase() {
+        return Mockito.mock(GetProjectApi.class);
     }
 
     @Bean
-    GetTasksUseCase getTasksUseCase() {
-        return Mockito.mock(GetTasksUseCase.class);
+    GetTasksApi getTasksUseCase() {
+        return Mockito.mock(GetTasksApi.class);
     }
 
     @Bean

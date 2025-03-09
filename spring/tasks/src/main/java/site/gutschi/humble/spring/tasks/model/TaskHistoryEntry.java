@@ -1,16 +1,15 @@
 package site.gutschi.humble.spring.tasks.model;
 
 import lombok.Builder;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.time.Instant;
 
 @Builder
-//TODO Modelling: Use User instead of String
-public record TaskHistoryEntry(String user, Instant timestamp,
+public record TaskHistoryEntry(User user, Instant timestamp,
                                TaskHistoryType type, String field,
                                String oldValue, String newValue) {
     @SuppressWarnings("unused") //Used implicitly through UI
-    //TODO UI: Internationalization
     public String description() {
         return switch (type) {
             case CREATED -> "Task created";

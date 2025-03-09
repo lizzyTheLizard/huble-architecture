@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,11 +7,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 import site.gutschi.humble.spring.users.ports.ProjectRepository;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
@@ -22,12 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest
-class ShowProjectsUseCaseTest {
+class ViewProjectsUseCaseTest {
     @Autowired
-    private ShowProjectsUseCase target;
+    private ViewProjectsUseCase target;
 
     @MockitoBean
-    private CurrentUserApi currentUserApi;
+    private CurrentUserInformation currentUserInformation;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -41,10 +41,11 @@ class ShowProjectsUseCaseTest {
     @BeforeEach
     void setup() {
         currentUser = User.builder().email("dev@example.com").name("Hans").build();
-        testProject = Project.createNew("PRO", "Test Project", currentUser, currentUserApi);
-        testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
+        final var owner = User.builder().email("owner@example.com").name("Owner").build();
+        testProject = Project.createNew("PRO", "Test Project", owner);
+        testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(currentUser);
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
     }
 
     @Nested
@@ -58,7 +59,7 @@ class ShowProjectsUseCaseTest {
 
         @Test
         void notAllowed() {
-            testProject.removeUserRole(currentUser);
+            testProject.removeUserRole(currentUser, currentUser);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.getProject(testProject.getKey()));
         }
@@ -72,13 +73,13 @@ class ShowProjectsUseCaseTest {
 
         @Test
         void asSystemUser() {
-            testProject.removeUserRole(currentUser);
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            testProject.removeUserRole(currentUser, currentUser);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
 
             final var result = target.getProject(testProject.getKey());
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(new ShowProjectsUseCase.GetProjectResponse(testProject, true));
+            assertThat(result).isEqualTo(new ViewProjectsUseCase.GetProjectResponse(testProject, true));
         }
 
         @Test
@@ -86,7 +87,7 @@ class ShowProjectsUseCaseTest {
             final var result = target.getProject(testProject.getKey());
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(new ShowProjectsUseCase.GetProjectResponse(testProject, false));
+            assertThat(result).isEqualTo(new ViewProjectsUseCase.GetProjectResponse(testProject, false));
         }
     }
 
@@ -97,20 +98,20 @@ class ShowProjectsUseCaseTest {
         @BeforeEach
         void setup() {
             final var testUser = User.builder().email("dev2@example.com").name("Hans").build();
-            testProject2 = Project.createNew("PRO", "Test Project", testUser, currentUserApi);
+            testProject2 = Project.createNew("PRO", "Test Project", testUser);
             Mockito.when(projectRepository.findAll()).thenReturn(Set.of(testProject, testProject2));
         }
 
         @Test
         void notAllowed() {
-            testProject.removeUserRole(currentUser);
+            testProject.removeUserRole(currentUser, currentUser);
 
             assertThat(target.getAllProjects()).isEmpty();
         }
 
         @Test
         void asSystemUser() {
-            Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
+            Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(true);
 
             assertThat(target.getAllProjects()).contains(testProject, testProject2);
         }

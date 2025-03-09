@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import lombok.Builder;
 import site.gutschi.humble.spring.common.exception.InvalidInputException;

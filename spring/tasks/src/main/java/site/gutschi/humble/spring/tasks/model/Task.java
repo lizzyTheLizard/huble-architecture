@@ -3,8 +3,9 @@ package site.gutschi.humble.spring.tasks.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
+import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.*;
 
@@ -12,14 +13,12 @@ import java.util.*;
  * A single task. It can be created, edited and deleted. Comments can be added to the task.
  * A task will keep a journal of each change.
  */
-//TODO Modelling: Use User instead of String
 public class Task {
-    private final CurrentUserApi currentUserApi;
     private final int id;
     @Getter
-    private final String projectKey;
+    private final Project project;
     @Getter
-    private final String creatorEmail;
+    private final User creator;
     private final Set<Comment> comments;
     private final Set<TaskHistoryEntry> historyEntries;
     public Integer estimationOrNull;
@@ -29,39 +28,37 @@ public class Task {
     private String title;
     @Getter
     private String description;
-    private String assigneeEmailOrNull;
+    private User assigneeOrNull;
     @Getter
     private boolean deleted;
 
     @Builder
-    public Task(CurrentUserApi currentUserApi, int id, String projectKey, String creatorEmail, TaskStatus status,
-                String title, String description, String assigneeEmail, Integer estimation, boolean deleted,
+    public Task(int id, Project project, User creator, TaskStatus status,
+                String title, String description, User assignee, Integer estimation, boolean deleted,
                 @Singular Collection<Comment> comments, @Singular Collection<TaskHistoryEntry> historyEntries) {
-        this.currentUserApi = currentUserApi;
         this.id = id;
-        this.projectKey = projectKey;
-        this.creatorEmail = creatorEmail;
+        this.project = project;
+        this.creator = creator;
         this.status = status;
         this.title = title;
         this.description = description;
-        this.assigneeEmailOrNull = assigneeEmail;
+        this.assigneeOrNull = assignee;
         this.estimationOrNull = estimation;
         this.deleted = deleted;
         this.comments = new HashSet<>(comments);
         this.historyEntries = new HashSet<>(historyEntries);
     }
 
-    public static Task createNew(CurrentUserApi currentUserApi, String projectKey, int nextId, String title, String description) {
+    public static Task createNew(Project project, int nextId, String title, String description, User creator) {
         final var historyEntry = TaskHistoryEntry.builder()
-                .user(currentUserApi.currentEmail())
+                .user(creator)
                 .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.CREATED)
                 .build();
         return Task.builder()
                 .id(nextId)
-                .currentUserApi(currentUserApi)
-                .projectKey(projectKey)
-                .creatorEmail(currentUserApi.currentEmail())
+                .project(project)
+                .creator(creator)
                 .status(TaskStatus.FUNNEL)
                 .title(title)
                 .description(description)
@@ -71,12 +68,14 @@ public class Task {
     }
 
     public TaskKey getKey() {
-        return new TaskKey(projectKey, id);
+        return new TaskKey(project.getKey(), id);
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(TaskStatus status, User user) {
         if (status == this.status) return;
-        final var historyEntry = historyBuilder()
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.EDITED)
                 .field("Status")
                 .oldValue(this.status.name())
@@ -86,9 +85,11 @@ public class Task {
         this.historyEntries.add(historyEntry);
     }
 
-    public void setTitle(String title) {
+    public void setTitle(String title, User user) {
         if (Objects.equals(title, this.title)) return;
-        final var historyEntry = historyBuilder()
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.EDITED)
                 .field("Title")
                 .oldValue(this.title)
@@ -98,9 +99,11 @@ public class Task {
         this.title = title;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description, User user) {
         if (Objects.equals(description, this.description)) return;
-        final var historyEntry = historyBuilder()
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.EDITED)
                 .field("Description")
                 .oldValue(this.description)
@@ -110,19 +113,25 @@ public class Task {
         this.description = description;
     }
 
-    public Optional<String> getAssigneeEmail() {
-        return Optional.ofNullable(this.assigneeEmailOrNull);
+    public Optional<User> getAssignee() {
+        return Optional.ofNullable(this.assigneeOrNull);
     }
 
-    public void setAssigneeEmail(String assigneeEmailOrNull) {
-        if (Objects.equals(assigneeEmailOrNull, this.assigneeEmailOrNull)) return;
-        final var historyEntry = historyBuilder()
+    public void setAssignee(User assigneeOrNull, User user) {
+        if (Objects.equals(assigneeOrNull, this.assigneeOrNull)) return;
+        final var historyEntryBuilder = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.EDITED)
-                .field("Assignee")
-                .oldValue(this.assigneeEmailOrNull)
-                .newValue(assigneeEmailOrNull)
-                .build();
-        this.assigneeEmailOrNull = assigneeEmailOrNull;
+                .field("Assignee");
+        if (this.assigneeOrNull != null) {
+            historyEntryBuilder.oldValue(this.assigneeOrNull.getEmail());
+        }
+        if (assigneeOrNull != null) {
+            historyEntryBuilder.newValue(assigneeOrNull.getEmail());
+        }
+        final var historyEntry = historyEntryBuilder.build();
+        this.assigneeOrNull = assigneeOrNull;
         this.historyEntries.add(historyEntry);
     }
 
@@ -130,9 +139,11 @@ public class Task {
         return Optional.ofNullable(this.estimationOrNull);
     }
 
-    public void setEstimation(Integer estimationOrNull) {
+    public void setEstimation(Integer estimationOrNull, User user) {
         if (Objects.equals(estimationOrNull, this.estimationOrNull)) return;
-        final var historyEntry = historyBuilder()
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.EDITED)
                 .field("Estimation")
                 .oldValue(this.estimationOrNull == null ? null : this.estimationOrNull.toString())
@@ -142,18 +153,21 @@ public class Task {
         this.historyEntries.add(historyEntry);
     }
 
-    public void setDeleted() {
-        final var historyEntry = historyBuilder()
+    public void setDeleted(User user) {
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .type(TaskHistoryType.DELETED)
                 .build();
         this.deleted = true;
         this.historyEntries.add(historyEntry);
     }
 
-    public void addComment(String text) {
-        final var user = currentUserApi.currentEmail();
+    public void addComment(String text, User user) {
         final var time = TimeHelper.now();
-        final var historyEntry = historyBuilder()
+        final var historyEntry = TaskHistoryEntry.builder()
+                .user(user)
+                .timestamp(TimeHelper.now())
                 .timestamp(time)
                 .type(TaskHistoryType.COMMENTED)
                 .newValue(text)
@@ -169,9 +183,5 @@ public class Task {
 
     public Set<TaskHistoryEntry> getHistoryEntries() {
         return Collections.unmodifiableSet(this.historyEntries);
-    }
-
-    private TaskHistoryEntry.TaskHistoryEntryBuilder historyBuilder() {
-        return TaskHistoryEntry.builder().user(currentUserApi.currentEmail()).timestamp(TimeHelper.now());
     }
 }

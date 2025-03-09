@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,15 +7,15 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.Set;
 
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest
-class CreateTaskTest {
+class CreateTaskUseCaseTest {
     @Autowired
     private CreateTaskUseCase target;
 
@@ -34,7 +34,7 @@ class CreateTaskTest {
     private TaskRepository taskRepository;
 
     @MockitoBean
-    private GetProjectUseCase getProjectUseCase;
+    private GetProjectApi getProjectApi;
 
     private User currentUser;
     private Project testProject;
@@ -42,8 +42,8 @@ class CreateTaskTest {
     @BeforeEach
     void setup() {
         currentUser = User.builder().email("dev@example.com").name("Hans").build();
-        testProject = Project.createNew("PRO", "Test Project", currentUser, currentUserApi);
-        Mockito.when(currentUserApi.currentEmail()).thenReturn("dev@example.com");
+        testProject = Project.createNew("PRO", "Test Project", currentUser);
+        Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
         Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
     }
 
@@ -51,7 +51,7 @@ class CreateTaskTest {
     class GetProjectToCreate {
         @BeforeEach
         void setup() {
-            Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(Set.of(testProject));
+            Mockito.when(getProjectApi.getAllProjects()).thenReturn(Set.of(testProject));
         }
 
         @Test
@@ -66,13 +66,13 @@ class CreateTaskTest {
     class CreateTask {
         @BeforeEach
         void setup() {
-            Mockito.when(getProjectUseCase.getProject("PRO")).thenReturn(testProject);
-            Mockito.when(taskRepository.nextId("PRO")).thenReturn(42);
+            Mockito.when(getProjectApi.getProject("PRO")).thenReturn(testProject);
+            Mockito.when(taskRepository.nextId(testProject)).thenReturn(42);
         }
 
         @Test
         void projectReadOnly() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
 
             CreateTaskUseCase.CreateTaskRequest request = new CreateTaskUseCase.CreateTaskRequest("PRO", "title", "description");
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.create(request));
@@ -80,7 +80,7 @@ class CreateTaskTest {
 
         @Test
         void projectNotActive() {
-            testProject.setActive(false);
+            testProject.setActive(false, currentUser);
 
             CreateTaskUseCase.CreateTaskRequest request = new CreateTaskUseCase.CreateTaskRequest("PRO", "title", "description");
             assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.create(request));
@@ -93,13 +93,13 @@ class CreateTaskTest {
             final var createdTask = target.create(request);
 
             Mockito.verify(taskRepository).save(createdTask);
-            assertThat(createdTask.getCreatorEmail()).isEqualTo(currentUser.getEmail());
+            assertThat(createdTask.getCreator()).isEqualTo(currentUser);
             assertThat(createdTask.getKey()).isEqualTo(new TaskKey("PRO", 42));
-            assertThat(createdTask.getProjectKey()).isEqualTo("PRO");
+            assertThat(createdTask.getProject()).isEqualTo(testProject);
             assertThat(createdTask.getTitle()).isEqualTo("title");
             assertThat(createdTask.getDescription()).isEqualTo("description");
             assertThat(createdTask.getStatus()).isEqualTo(TaskStatus.FUNNEL);
-            assertThat(createdTask.getAssigneeEmail()).isEmpty();
+            assertThat(createdTask.getAssignee()).isEmpty();
             assertThat(createdTask.getEstimation()).isEmpty();
             assertThat(createdTask.getComments()).isEmpty();
             assertThat(createdTask.getHistoryEntries()).hasSize(1);
@@ -107,20 +107,20 @@ class CreateTaskTest {
 
         @Test
         void asSystemAdmin() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
             Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(true);
             CreateTaskUseCase.CreateTaskRequest request = new CreateTaskUseCase.CreateTaskRequest("PRO", "title", "description");
 
             final var createdTask = target.create(request);
 
             Mockito.verify(taskRepository).save(createdTask);
-            assertThat(createdTask.getCreatorEmail()).isEqualTo(currentUser.getEmail());
+            assertThat(createdTask.getCreator()).isEqualTo(currentUser);
             assertThat(createdTask.getKey()).isEqualTo(new TaskKey("PRO", 42));
-            assertThat(createdTask.getProjectKey()).isEqualTo("PRO");
+            assertThat(createdTask.getProject()).isEqualTo(testProject);
             assertThat(createdTask.getTitle()).isEqualTo("title");
             assertThat(createdTask.getDescription()).isEqualTo("description");
             assertThat(createdTask.getStatus()).isEqualTo(TaskStatus.FUNNEL);
-            assertThat(createdTask.getAssigneeEmail()).isEmpty();
+            assertThat(createdTask.getAssignee()).isEmpty();
             assertThat(createdTask.getEstimation()).isEmpty();
             assertThat(createdTask.getComments()).isEmpty();
             assertThat(createdTask.getHistoryEntries()).hasSize(1);

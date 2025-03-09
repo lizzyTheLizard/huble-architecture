@@ -10,13 +10,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import site.gutschi.humble.spring.users.api.UpdateUserUseCase;
 
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +29,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfiguration {
+    private final UpdateUserUseCase updateUserUseCase;
+
     @Bean
     public SecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
         http.oauth2Login(Customizer.withDefaults());
@@ -41,38 +46,36 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public GrantedAuthoritiesMapper grantedAuthoritiesMapper() {
-        return (authorities) -> {
-            final var idToken = authorities.stream()
-                    .filter(a -> a instanceof OidcUserAuthority)
-                    .map(a -> (OidcUserAuthority) a)
-                    .findFirst().orElseThrow().getIdToken();
-            final var result = new LinkedList<GrantedAuthority>(authorities);
-            final var roles = getRealmRolesFromToken(idToken);
-            log.debug("Roles from token: {}", roles);
-            result.addAll(roles);
-            return result;
-        };
+    public OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
+        final var result = new OidcUserService();
+        result.setOidcUserMapper(this::mapUser);
+        return result;
     }
 
-    private Collection<? extends GrantedAuthority> getRealmRolesFromToken(OidcIdToken idToken) {
-        try {
-            final var realmAccess = idToken.getClaim("realm_access");
-            if (realmAccess == null) {
-                return List.of();
-            }
-            final var realmAccessMap = (Map<?, ?>) realmAccess;
-            final var realmRoles = realmAccessMap.get("roles");
-            if (realmRoles == null) {
-                return List.of();
-            }
-            final var realmRolesList = (Collection<?>) realmRoles;
-            return realmRolesList.stream()
-                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r.toString().toUpperCase()))
-                    .toList();
-        } catch (Exception e) {
-            log.warn("Could not extract realm roles from token", e);
+    private OidcUser mapUser(OidcUserRequest oidcUserRequest, OidcUserInfo oidcUserInfo) {
+        final var email = oidcUserInfo.getEmail();
+        final var name = oidcUserInfo.getFullName();
+        final var request = new UpdateUserUseCase.UpdateUserRequest(email, name);
+        final var user = updateUserUseCase.updateUserAfterLogin(request);
+        final var idToken = oidcUserRequest.getIdToken();
+        final var authorities = getAuthorities(idToken);
+        final var claims = idToken.getClaims();
+        return new CustomOidcUser(user, authorities, idToken, oidcUserInfo, claims, email);
+    }
+
+    private Collection<? extends GrantedAuthority> getAuthorities(OidcIdToken idToken) {
+        final var realmAccess = idToken.getClaim("realm_access");
+        if (realmAccess == null) {
             return List.of();
         }
+        final var realmAccessMap = (Map<?, ?>) realmAccess;
+        final var realmRoles = realmAccessMap.get("roles");
+        if (realmRoles == null) {
+            return List.of();
+        }
+        final var realmRolesList = (Collection<?>) realmRoles;
+        return realmRolesList.stream()
+                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.toString().toUpperCase()))
+                .toList();
     }
 }

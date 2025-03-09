@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -7,17 +7,17 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
 import site.gutschi.humble.spring.tasks.ports.SearchCaller;
 import site.gutschi.humble.spring.tasks.ports.TaskRepository;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.GetProjectApi;
 import site.gutschi.humble.spring.users.model.Project;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
 import site.gutschi.humble.spring.users.model.User;
-import site.gutschi.humble.spring.users.usecases.GetProjectUseCase;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +38,7 @@ class ViewTasksTest {
     private TaskRepository taskRepository;
 
     @MockitoBean
-    private GetProjectUseCase getProjectUseCase;
+    private GetProjectApi getProjectApi;
 
     @MockitoBean
     private SearchCaller searchCaller;
@@ -48,8 +48,8 @@ class ViewTasksTest {
 
     @BeforeEach
     void setup() {
-        currentUser = new User("dev@example.com", "Hans");
-        testProject = Project.createNew("PRO", "Test", currentUser, currentUserApi);
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        testProject = Project.createNew("PRO", "Test", currentUser);
     }
 
     @Nested
@@ -64,7 +64,7 @@ class ViewTasksTest {
             request = new ViewTasksUseCase.FindTasksRequest("test", 1, 10);
             final var searchResponse = new SearchCaller.SearchCallerResponse(List.of(taskView), 3);
             Mockito.when(searchCaller.findTasks(Mockito.eq(searchRequest))).thenReturn(searchResponse);
-            Mockito.when(getProjectUseCase.getAllProjects()).thenReturn(Set.of(testProject));
+            Mockito.when(getProjectApi.getAllProjects()).thenReturn(Set.of(testProject));
         }
 
         @Test
@@ -83,11 +83,11 @@ class ViewTasksTest {
 
         @BeforeEach
         void setup() {
-            existingTask = Task.createNew(currentUserApi, testProject.getKey(), 13, "Test", "Test");
+            existingTask = Task.createNew(testProject, 13, "Test", "Test", currentUser);
             Mockito.when(taskRepository.findByKey(existingTask.getKey().toString())).thenReturn(Optional.of(existingTask));
-            Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
+            Mockito.when(currentUserApi.getCurrentUser()).thenReturn(currentUser);
             Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-            Mockito.when(getProjectUseCase.getProject(testProject.getKey())).thenReturn(testProject);
+            Mockito.when(getProjectApi.getProject(testProject.getKey())).thenReturn(testProject);
         }
 
         @Test
@@ -99,14 +99,14 @@ class ViewTasksTest {
 
         @Test
         void deleted() {
-            existingTask.setDeleted();
+            existingTask.setDeleted(currentUser);
 
             assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> target.getTaskByKey(existingTask.getKey()));
         }
 
         @Test
         void readOnly() {
-            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER);
+            testProject.setUserRole(currentUser, ProjectRoleType.STAKEHOLDER, currentUser);
             final var result = target.getTaskByKey(existingTask.getKey());
 
             assertThat(result.task()).isEqualTo(existingTask);

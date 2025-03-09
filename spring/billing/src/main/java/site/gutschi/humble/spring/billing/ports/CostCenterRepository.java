@@ -3,8 +3,8 @@ package site.gutschi.humble.spring.billing.ports;
 import site.gutschi.humble.spring.billing.model.CostCenter;
 import site.gutschi.humble.spring.users.model.Project;
 
+import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 public interface CostCenterRepository {
     /**
@@ -20,7 +20,7 @@ public interface CostCenterRepository {
     /**
      * Returns all cost centers.
      */
-    Set<CostCenter> findAll();
+    Collection<CostCenter> findAll();
 
     /**
      * Returns the cost center for the given project or empty if no cost center exists.

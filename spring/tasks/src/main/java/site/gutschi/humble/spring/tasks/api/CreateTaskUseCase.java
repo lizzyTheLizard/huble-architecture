@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.tasks.usecases;
+package site.gutschi.humble.spring.tasks.api;
 
 import site.gutschi.humble.spring.common.exception.InvalidInputException;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
@@ -6,7 +6,7 @@ import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.users.model.Project;
 
-import java.util.Set;
+import java.util.Collection;
 
 
 public interface CreateTaskUseCase {
@@ -23,9 +23,9 @@ public interface CreateTaskUseCase {
     Task create(CreateTaskRequest request);
 
     /**
-     * Get a set of projects for which the user can create tasks.
+     * Get a collection of projects for which the user can create tasks.
      */
-    Set<Project> getProjectsToCreate();
+    Collection<Project> getProjectsToCreate();
 
     /**
      * A request to create a task

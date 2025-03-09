@@ -1,19 +1,17 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import site.gutschi.humble.spring.common.exception.NotFoundException;
 import site.gutschi.humble.spring.users.model.Project;
 
 import java.util.Set;
 
-public interface GetProjectUseCase {
+public interface GetProjectApi {
 
     /**
      * Get a project by its key
      *
      * @throws NotFoundException If the project does not exist or is invisible to the user.
      */
-    //TODO Modelling: Use Project instead of String
-    //TODO API: Separate API and UseCse
     Project getProject(String projectKey);
 
     /**
@@ -21,6 +19,5 @@ public interface GetProjectUseCase {
      *
      * @return All projects the user is allowed to manage.
      */
-    //TODO API: Separate API and UseCse
     Set<Project> getAllProjects();
 }

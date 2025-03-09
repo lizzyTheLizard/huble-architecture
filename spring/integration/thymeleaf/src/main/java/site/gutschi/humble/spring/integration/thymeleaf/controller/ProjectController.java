@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
+import site.gutschi.humble.spring.users.api.CreateProjectUseCase;
+import site.gutschi.humble.spring.users.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.api.EditProjectUseCase;
+import site.gutschi.humble.spring.users.api.ViewProjectsUseCase;
 import site.gutschi.humble.spring.users.model.ProjectRoleType;
-import site.gutschi.humble.spring.users.usecases.CreateProjectUseCase;
-import site.gutschi.humble.spring.users.usecases.EditProjectUseCase;
-import site.gutschi.humble.spring.users.usecases.ShowProjectsUseCase;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -23,21 +23,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @SuppressWarnings("SameReturnValue")
 public class ProjectController {
-    private final ShowProjectsUseCase showProjectsUseCase;
+    private final ViewProjectsUseCase viewProjectsUseCase;
     private final EditProjectUseCase editProjectUseCase;
     private final CreateProjectUseCase createProjectUseCase;
     private final CurrentUserApi currentUserApi;
 
     @GetMapping({"/index.html", "/", "/projects"})
     public String showProjectOverview(Model model) {
-        final var response = showProjectsUseCase.getAllProjects();
+        final var response = viewProjectsUseCase.getAllProjects();
         model.addAttribute("projects", response);
         return "projects";
     }
 
     @GetMapping("/projects/{key}")
     public String showProject(@PathVariable("key") String key, Model model) {
-        final var response = showProjectsUseCase.getProject(key);
+        final var response = viewProjectsUseCase.getProject(key);
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
         model.addAttribute("manageable", response.manageable());
@@ -47,9 +47,10 @@ public class ProjectController {
 
     @GetMapping("/projects/{key}/edit")
     public String editProjectView(@PathVariable("key") String key, Model model) {
-        final var response = showProjectsUseCase.getProject(key);
+        final var response = viewProjectsUseCase.getProject(key);
+        final var currentUser = currentUserApi.getCurrentUser();
         if (!response.manageable()) {
-            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUserApi.currentEmail());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUser.getEmail());
         }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
@@ -74,9 +75,10 @@ public class ProjectController {
 
     @GetMapping("/projects/{key}/assignUser")
     public String assignUserView(@PathVariable("key") String key, Model model) {
-        final var response = showProjectsUseCase.getProject(key);
+        final var response = viewProjectsUseCase.getProject(key);
+        final var currentUser = currentUserApi.getCurrentUser();
         if (!response.manageable()) {
-            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUserApi.currentEmail());
+            throw NotAllowedException.notAllowed("Project", response.project().getKey(), "edit", currentUser.getEmail());
         }
         model.addAttribute("project", response.project());
         model.addAttribute("users", response.project().getProjectUsers());
@@ -104,8 +106,9 @@ public class ProjectController {
 
     @GetMapping("/projects/create")
     public String createProjectView(Model model) {
+        final var currentUser = currentUserApi.getCurrentUser();
         if (!createProjectUseCase.canCreateProject()) {
-            throw NotAllowedException.notAllowed("Project", "create", currentUserApi.currentEmail());
+            throw NotAllowedException.notAllowed("Project", "create", currentUser.getEmail());
         }
         return "createProject";
     }

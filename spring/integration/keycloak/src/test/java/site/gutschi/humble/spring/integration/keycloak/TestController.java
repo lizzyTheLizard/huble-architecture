@@ -2,19 +2,22 @@ package site.gutschi.humble.spring.integration.keycloak;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 
 @RestController
 @SuppressWarnings("unused") // Used implicitly by the test
 public class TestController {
-    private final CurrentUserApi currentUserApi;
+    private final CurrentUserInformation currentUserInformation;
 
-    public TestController(CurrentUserApi currentUserApi) {
-        this.currentUserApi = currentUserApi;
+    public TestController(CurrentUserInformation currentUserInformation) {
+        this.currentUserInformation = currentUserInformation;
     }
 
     @GetMapping("/test")
     public String test() {
-        return "User: " + currentUserApi.currentEmail() + ", SystemAdmin: " + currentUserApi.isSystemAdmin();
+        return String.format("User: %s <%s>, SystemAdmin: %s",
+                currentUserInformation.getCurrentUser().getName(),
+                currentUserInformation.getCurrentUser().getEmail(),
+                currentUserInformation.isSystemAdmin());
     }
 }

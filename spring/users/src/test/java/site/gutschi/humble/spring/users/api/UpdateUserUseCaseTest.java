@@ -1,4 +1,4 @@
-package site.gutschi.humble.spring.users.usecases;
+package site.gutschi.humble.spring.users.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,9 +6,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.exception.NotAllowedException;
 import site.gutschi.humble.spring.users.model.User;
+import site.gutschi.humble.spring.users.ports.CurrentUserInformation;
 import site.gutschi.humble.spring.users.ports.UserRepository;
 
 import java.util.Optional;
@@ -22,7 +22,7 @@ class UpdateUserUseCaseTest {
     private UpdateUserUseCase target;
 
     @MockitoBean
-    private CurrentUserApi currentUserApi;
+    private CurrentUserInformation currentUserInformation;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -33,8 +33,8 @@ class UpdateUserUseCaseTest {
     void setup() {
         currentUser = User.builder().email("dev@example.com").name("Hans").build();
         Mockito.when(userRepository.findByMail(currentUser.getEmail())).thenReturn(Optional.of(currentUser));
-        Mockito.when(currentUserApi.isSystemAdmin()).thenReturn(false);
-        Mockito.when(currentUserApi.currentEmail()).thenReturn(currentUser.getEmail());
+        Mockito.when(currentUserInformation.isSystemAdmin()).thenReturn(false);
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(currentUser);
     }
 
     @Test
@@ -64,7 +64,8 @@ class UpdateUserUseCaseTest {
 
     @Test
     void wrongUser() {
-        Mockito.when(currentUserApi.currentEmail()).thenReturn("new@example.com");
+        final var otherUser = User.builder().email("new@example.com").name("Hans2").build();
+        Mockito.when(currentUserInformation.getCurrentUser()).thenReturn(otherUser);
         final var request = new UpdateUserUseCase.UpdateUserRequest(currentUser.getEmail(), "New Name");
 
         assertThatExceptionOfType(NotAllowedException.class).isThrownBy(() -> target.updateUserAfterLogin(request));

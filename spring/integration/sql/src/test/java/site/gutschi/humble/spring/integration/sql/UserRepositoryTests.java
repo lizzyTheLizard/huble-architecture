@@ -32,9 +32,9 @@ public class UserRepositoryTests {
 
     private static Stream<User> provideUsers() {
         return Stream.of(
-                new User("test@example.com", "Test User"),
-                new User("admin@example.com", "Admin"),
-                new User("admin@example.com", null)
+                User.builder().email("test@example.com").name("Test User").build(),
+                User.builder().email("admin@example.com").name("Admin").build(),
+                User.builder().email("admin@example.com").name(null).build()
         );
     }
 

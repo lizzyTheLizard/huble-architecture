@@ -3,34 +3,35 @@ package site.gutschi.humble.spring.integration.solr;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.solr.client.solrj.beans.Field;
+import site.gutschi.humble.spring.tasks.api.ViewTasksUseCase;
 import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
 import site.gutschi.humble.spring.tasks.model.TaskKey;
 import site.gutschi.humble.spring.tasks.model.TaskStatus;
-import site.gutschi.humble.spring.tasks.usecases.ViewTasksUseCase;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.util.List;
 
 @Getter
 @Setter
 public class TaskSolrDocument {
-    @Field("key_s")
+    @Field("key")
     public String key;
-    @Field("project_s")
+    @Field("project")
     public String project;
-    @Field("title_t")
+    @Field("title")
     public String title;
-    @Field("assignee_s")
+    @Field("assignee")
     public String assignee;
-    @Field("creator_s")
+    @Field("creator")
     public String creator;
-    @Field("description_t")
+    @Field("description")
     public String description;
-    @Field("status_s")
+    @Field("status")
     public String status;
-    @Field("estimation_i")
+    @Field("estimation")
     public Integer estimation;
-    @Field("comments_t")
+    @Field("comments")
     public List<String> comments;
 
     public TaskSolrDocument() {
@@ -39,13 +40,13 @@ public class TaskSolrDocument {
     public static TaskSolrDocument fromTask(Task task) {
         final var result = new TaskSolrDocument();
         result.key = task.getKey().toString();
-        result.project = task.getProjectKey();
+        result.project = task.getProject().getKey();
         result.title = task.getTitle();
         result.description = task.getDescription();
         result.status = task.getStatus().name();
         result.estimation = task.getEstimation().orElse(null);
-        result.assignee = task.getAssigneeEmail().orElse(null);
-        result.creator = task.getCreatorEmail();
+        result.assignee = task.getAssignee().map(User::getEmail).orElse(null);
+        result.creator = task.getCreator().getEmail();
         result.comments = task.getComments().stream()
                 .map(Comment::text)
                 .toList();

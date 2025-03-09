@@ -3,14 +3,19 @@ package site.gutschi.humble.spring.integration.keycloak;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.ResponseBodyData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import site.gutschi.humble.spring.common.test.KeycloakContainer;
+import site.gutschi.humble.spring.users.api.UpdateUserUseCase;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -25,27 +30,38 @@ import static org.hamcrest.Matchers.startsWith;
 class SecurityConfigurationTest {
     @Container
     static final KeycloakContainer container = new KeycloakContainer().withConfigFile("keycloak-config.json");
-
     @LocalServerPort
     int port;
+    @MockitoBean
+    private UpdateUserUseCase updateUserUseCase;
 
     @DynamicPropertySource
     static void keycloakProperties(DynamicPropertyRegistry registry) {
         container.registerProperties(registry);
     }
 
+    @BeforeEach
+    void setup() {
+        Mockito.when(updateUserUseCase.updateUserAfterLogin(Mockito.any())).thenAnswer(i -> {
+            final var request = (UpdateUserUseCase.UpdateUserRequest) i.getArgument(0);
+            return User.builder().email(request.email()).name(request.name()).build();
+        });
+    }
+
     @Test
     void normalUser() {
         final var userData = loginAndGetUserData("dev@example.com", "dev");
-        assertThat(userData).contains("User: dev@example.com");
+        assertThat(userData).contains("User: Dev Develop <dev@example.com>");
         assertThat(userData).contains("SystemAdmin: false");
+        Mockito.verify(updateUserUseCase, Mockito.times(1)).updateUserAfterLogin(new UpdateUserUseCase.UpdateUserRequest("dev@example.com", "Dev Develop"));
     }
 
     @Test
     void systemAdmin() {
         final var userData = loginAndGetUserData("admin@example.com", "admin");
-        assertThat(userData).contains("User: admin@example.com");
+        assertThat(userData).contains("User: Admin Administrator <admin@example.com>");
         assertThat(userData).contains("SystemAdmin: true");
+        Mockito.verify(updateUserUseCase, Mockito.times(1)).updateUserAfterLogin(new UpdateUserUseCase.UpdateUserRequest("admin@example.com", "Admin Administrator"));
     }
 
     private String loginAndGetUserData(String username, String password) {

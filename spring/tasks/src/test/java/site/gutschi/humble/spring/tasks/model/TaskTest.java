@@ -2,201 +2,165 @@ package site.gutschi.humble.spring.tasks.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
+import site.gutschi.humble.spring.users.model.Project;
+import site.gutschi.humble.spring.users.model.User;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskTest {
-    private static final String USER = "TestUser";
-    private static final CurrentUserApi USER_API = Mockito.mock(CurrentUserApi.class);
-    private static final Instant NOW = Instant.now();
-
-    private static Task createTask() {
-        final var task = Task.builder()
-                .currentUserApi(USER_API)
-                .id(1)
-                .status(TaskStatus.BACKLOG)
-                .build();
-        task.addComment("Old Comment");
-        task.setAssigneeEmail("Old Assignee");
-        task.setStatus(TaskStatus.BACKLOG);
-        return task;
-    }
+    private Instant now;
+    private User currentUser;
+    private Task task;
 
     @BeforeEach
     void setUp() {
-        Mockito.when(USER_API.currentEmail()).thenReturn(USER);
-        Mockito.when(USER_API.isSystemAdmin()).thenReturn(false);
-        TimeHelper.setNow(NOW);
+        currentUser = User.builder().email("dev@example.com").name("Hans").build();
+        final var owner = User.builder().email("owner@example.com").name("Owner").build();
+        final var project = Project.createNew("KEY", "Name", owner);
+        task = Task.createNew(project, 13, "Name", "Title", owner);
+        now = Instant.now();
+        TimeHelper.setNow(now);
     }
 
     @Test
     void addComment() {
         final var comment = "Test Comment";
-        final var task = createTask();
 
-        task.addComment(comment);
+        task.addComment(comment, currentUser);
 
-        assertThat(task.getComments())
-                .contains(new Comment(USER, NOW, comment));
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.COMMENTED, null, null, comment));
+        assertThat(task.getComments()).contains(new Comment(currentUser, now, comment));
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.COMMENTED, null, null, comment));
     }
 
     @Test
     void setStatus() {
         final var newStatus = TaskStatus.PROGRESS;
-        final var task = createTask();
         final var oldStatus = task.getStatus();
 
-        task.setStatus(newStatus);
-        assertThat(task.getStatus())
-                .isEqualTo(newStatus);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Status", oldStatus.name(), newStatus.name()));
+        task.setStatus(newStatus, currentUser);
+
+        assertThat(task.getStatus()).isEqualTo(newStatus);
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Status", oldStatus.name(), newStatus.name()));
     }
 
     @Test
     void setStatus_ignoreUnchanged() {
-        final var task = createTask();
         final var historySize = task.getHistoryEntries().size();
 
-        task.setStatus(task.getStatus());
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
+        task.setStatus(task.getStatus(), currentUser);
+
+        assertThat(task.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setTitle() {
-        final var task = createTask();
+        final var oldTitle = task.getTitle();
         final var newTitle = "New Title";
 
-        task.setTitle(newTitle);
+        task.setTitle(newTitle, currentUser);
 
-        assertThat(task.getTitle())
-                .isEqualTo(newTitle);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Title", null, newTitle));
+        assertThat(task.getTitle()).isEqualTo(newTitle);
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Title", oldTitle, newTitle));
     }
 
     @Test
     void setTitle_ignoreUnchanged() {
-        final var task = createTask();
         final var historySize = task.getHistoryEntries().size();
 
-        task.setTitle(task.getTitle());
+        task.setTitle(task.getTitle(), currentUser);
 
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
+        assertThat(task.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setDescription() {
-        final var task = createTask();
+        final var oldDescription = task.getDescription();
         final var newDescription = "New Description";
 
-        task.setDescription(newDescription);
+        task.setDescription(newDescription, currentUser);
 
-        assertThat(task.getDescription())
-                .isEqualTo(newDescription);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Description", null, newDescription));
+        assertThat(task.getDescription()).isEqualTo(newDescription);
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Description", oldDescription, newDescription));
     }
 
     @Test
     void setDescription_ignoreUnchanged() {
-        final var task = createTask();
         final var historySize = task.getHistoryEntries().size();
 
-        task.setDescription(task.getDescription());
+        task.setDescription(task.getDescription(), currentUser);
 
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
+        assertThat(task.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setDeleted() {
-        final var task = createTask();
+        task.setDeleted(currentUser);
 
-        task.setDeleted();
-        assertThat(task.isDeleted())
-                .isTrue();
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.DELETED, null, null, null));
+        assertThat(task.isDeleted()).isTrue();
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.DELETED, null, null, null));
     }
 
     @Test
     void setEstimation() {
-        final var task = createTask();
         final var newEstimation = 5;
 
-        task.setEstimation(newEstimation);
-        assertThat(task.getEstimation())
-                .contains(newEstimation);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Estimation", null, "5"));
+        task.setEstimation(newEstimation, currentUser);
+
+        assertThat(task.getEstimation()).contains(newEstimation);
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Estimation", null, "5"));
     }
 
     @Test
     void setEstimation_ignoreUnchanged() {
-        final var task = createTask();
         final var historySize = task.getHistoryEntries().size();
 
-        task.setEstimation(null);
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
+        task.setEstimation(null, currentUser);
+
+        assertThat(task.getHistoryEntries()).hasSize(historySize);
     }
 
     @Test
     void setEstimation_un_estimate() {
-        final var task = createTask();
         final var oldEstimation = 5;
-        task.setEstimation(oldEstimation);
+        task.setEstimation(oldEstimation, currentUser);
 
-        task.setEstimation(null);
-        assertThat(task.getEstimation())
-                .isEmpty();
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Estimation", "5", null));
+        task.setEstimation(null, currentUser);
+
+        assertThat(task.getEstimation()).isEmpty();
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Estimation", "5", null));
     }
 
     @Test
     void setAssignee() {
-        final var task = createTask();
-        final var newAssignee = "New Assignee";
+        final var newAssignee = User.builder().email("asignee@example.com").name("Assignee").build();
 
-        task.setAssigneeEmail(newAssignee);
-        assertThat(task.getAssigneeEmail())
-                .contains(newAssignee);
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Assignee", "Old Assignee", newAssignee));
+        task.setAssignee(newAssignee, currentUser);
+
+        assertThat(task.getAssignee()).contains(newAssignee);
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Assignee", null, newAssignee.getEmail()));
     }
 
     @Test
     void setAssignee_un_assign() {
-        final var task = createTask();
-        final var newAssignee = "New Assignee";
-        task.setAssigneeEmail(newAssignee);
+        final var newAssignee = User.builder().email("asignee@example.com").name("Assignee").build();
+        task.setAssignee(newAssignee, currentUser);
 
-        task.setAssigneeEmail(null);
-        assertThat(task.getAssigneeEmail())
-                .isEmpty();
-        assertThat(task.getHistoryEntries())
-                .contains(new TaskHistoryEntry(USER, NOW, TaskHistoryType.EDITED, "Assignee", newAssignee, null));
+        task.setAssignee(null, currentUser);
+
+        assertThat(task.getAssignee()).isEmpty();
+        assertThat(task.getHistoryEntries()).contains(new TaskHistoryEntry(currentUser, now, TaskHistoryType.EDITED, "Assignee", newAssignee.getEmail(), null));
 
     }
 
     @Test
     void setAssignee_ignoreUnchanged() {
-        final var task = createTask();
         final var historySize = task.getHistoryEntries().size();
 
-        task.setAssigneeEmail("Old Assignee");
-        assertThat(task.getHistoryEntries())
-                .hasSize(historySize);
+        task.setAssignee(null, currentUser);
+
+        assertThat(task.getHistoryEntries()).hasSize(historySize);
     }
 }

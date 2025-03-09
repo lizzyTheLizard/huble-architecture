@@ -3,7 +3,6 @@ package site.gutschi.humble.spring.integration.inmemory;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import site.gutschi.humble.spring.common.api.CurrentUserApi;
 import site.gutschi.humble.spring.common.helper.TimeHelper;
 import site.gutschi.humble.spring.tasks.model.Comment;
 import site.gutschi.humble.spring.tasks.model.Task;
@@ -20,11 +19,9 @@ import site.gutschi.humble.spring.users.ports.UserRepository;
 import java.util.List;
 import java.util.stream.IntStream;
 
-// TODO Configuration: Make use of immemory database configurable
 @Service
 @RequiredArgsConstructor
 public class InMemoryInitializer {
-    private final CurrentUserApi currentUserApi;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
@@ -58,10 +55,9 @@ public class InMemoryInitializer {
                 .estimation(3)
                 .estimation(5)
                 .historyEntries(List.of())
-                .currentUserApi(currentUserApi)
                 .build();
         final var tasks = IntStream.range(1, 20)
-                .mapToObj(i -> createTask(user1, user2, i))
+                .mapToObj(i -> createTask(user1, user2, project, i))
                 .toArray(Task[]::new);
 
         userRepository.save(user1);
@@ -75,17 +71,16 @@ public class InMemoryInitializer {
         searchCaller.informUpdatedTasks(tasks);
     }
 
-    private Task createTask(User user1, User user2, int i) {
+    private Task createTask(User user1, User user2, Project project, int i) {
         return Task.builder()
-                .id(taskRepository.nextId("PRO"))
-                .creatorEmail(user1.getEmail())
-                .comment(new Comment("test@example.com", TimeHelper.now(), "This is a comment"))
+                .id(taskRepository.nextId(project))
+                .creator(user1)
+                .comment(new Comment(user1, TimeHelper.now(), "This is a comment"))
                 .description("This is the description")
-                .projectKey("PRO")
+                .project(project)
                 .status(TaskStatus.FUNNEL)
                 .estimation(3)
-                .assigneeEmail(user2.getEmail())
-                .currentUserApi(currentUserApi)
+                .assignee(user2)
                 .title("Title of PRO-" + i)
                 .build();
     }
